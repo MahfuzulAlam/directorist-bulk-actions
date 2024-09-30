@@ -69,9 +69,9 @@ We welcome contributions from the community. If you’d like to contribute to im
 
 ## Support
 
-If you need any help with this plugin, please open an issue on the [GitHub repository](https://github.com/your-repository).
+If you need any help with this plugin, please open an issue on the [GitHub repository](https://github.com/MahfuzulAlam/directorist-bulk-actions).
 
 ---
 
-**Developed by [Your Name]**
+**Developed by [Mahfuz](https://github.com/MahfuzulAlam)**
 
