@@ -1,0 +1,39 @@
+.radio-boxes-container {
+    display: flex;
+    gap: 20px;
+}
+
+.radio-box {
+    width: 100px;
+    height: 100px;
+    border: 2px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.3s ease;
+}
+
+.radio-box input[type="radio"] {
+    display: none;
+}
+
+.radio-box .box-content {
+    text-align: center;
+    font-size: 16px;
+}
+
+.radio-box:hover {
+    border-color: #0073aa; /* Hover effect color */
+}
+
+.radio-box.selected{
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-color: #0073aa;
+    background-color: #f0f0f0; /* Checked box background color */
+}
+
+.radio-box input[type="radio"]:checked + .box-content {
+    font-weight: bold;
+}
