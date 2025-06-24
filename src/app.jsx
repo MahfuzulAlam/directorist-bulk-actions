@@ -45,7 +45,7 @@ const App = () => {
                 const updatedCount = data.updated?.length || 0;
                 const curMissAdrs = postsCount - updatedCount;
 
-                setLog(prev => [...prev, `Batch ${currentOffset / limit + 1}: ${updatedCount}/${postsCount} updated.`]);
+                setLog(prev => [...prev, `Batch ${currentOffset / limit}: ${updatedCount}/${postsCount} updated.`]);
 
                 if (postsCount === 0) {
                     setCompleted(true);
@@ -73,9 +73,6 @@ const App = () => {
         runBatch();
     }
 
-    const handleCoordinates = () => {
-        alert('Button clicked!');
-    };
     return (
         <div className="wrap">
             <h1 className="wp-heading-inline">Directorist - Bulk Actions</h1>
@@ -123,8 +120,8 @@ const App = () => {
                 </div>
 
                 <div style={{ marginTop: '20px', fontSize: '14px', color: '#555', overflow: 'scroll', maxHeight: '300px' }}>
-                    {log.map((entry, i) => (
-                    <div key={i}>• {entry}</div>
+                    {[...log].reverse().map((entry, i) => (
+                        <div key={i}>- {entry}</div>
                     ))}
                 </div>
             </div>
