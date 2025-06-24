@@ -96,7 +96,21 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         public function enqueue_admin_scripts()
         {
             // Replace 'your-plugin-name' with the actual name of your plugin's folder.
-            wp_enqueue_script( 'dba-admin-script', DIRECTORIST_BULK_ACTIONS_URI . 'assets/js/admin.js', array( 'jquery' ), '1.0', true );
+            //wp_enqueue_script( 'dba-admin-script', DIRECTORIST_BULK_ACTIONS_URI . 'assets/js/admin.js', array( 'jquery' ), '1.0', true );
+
+            wp_enqueue_script(
+                'dba-admin-script',
+                DIRECTORIST_BULK_ACTIONS_URI . 'build/app.js',
+                [ 'wp-element' ], // ensures React from WP core is loaded
+                time(),
+                true
+            );
+
+            wp_localize_script( 'dba-admin-script', 'dba_data', [
+                'totalListings' => $this->total_listings(),
+                'restUrl'       => rest_url( 'directorist_bulk_actions/v1/update/coordinate' ),
+                'nonce'         => wp_create_nonce( 'wp_rest' ),
+            ] );
         }
 
         /**
@@ -106,6 +120,13 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         {
             // Replace 'your-plugin-name' with the actual name of your plugin's folder.
             wp_enqueue_style( 'dba-admin-style', DIRECTORIST_BULK_ACTIONS_URI . 'assets/css/admin.css', array(), '1.0' );
+
+            wp_enqueue_style(
+                'my-react-style',
+                DIRECTORIST_BULK_ACTIONS_URI . 'build/style.css',
+                [],
+                time()
+            );
         }
 
         /**
@@ -134,7 +155,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
 
             if (isset($args['form'])) $listing_form = $args['form'];
 
-            $file = DIRECTORIST_CUSTOM_CODE_DIR . '/templates/' . $template_file . '.php';
+            $file = DIRECTORIST_BULK_ACTIONS_DIR . '/templates/' . $template_file . '.php';
 
             if ($this->template_exists($template_file)) {
                 include $file;
@@ -148,6 +169,21 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         {
             if ($this->template_exists($template)) $template = $this->get_template($template, $field_data);
             return $template;
+        }
+
+        /**
+         * Total number of the listings
+         */
+        public function total_listings()
+        {
+            $posts = get_posts( [
+                'post_type'      => ATBDP_POST_TYPE,
+                'post_status'    => [ 'publish', 'private', 'draft' ],
+                'numberposts'    => -1,
+                'fields'         => 'ids',
+            ] );
+
+            return $posts ? count( $posts ): 0;
         }
     }
 
