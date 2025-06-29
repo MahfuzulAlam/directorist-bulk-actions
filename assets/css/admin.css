@@ -25,16 +25,18 @@
 }
 
 .radio-box:hover {
-    border-color: #0073aa; /* Hover effect color */
+    border-color: #0073aa;
+    /* Hover effect color */
 }
 
-.radio-box.selected{
+.radio-box.selected {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-color: #0073aa;
-    background-color: #f0f0f0; /* Checked box background color */
+    background-color: #f0f0f0;
+    /* Checked box background color */
 }
 
-.radio-box input[type="radio"]:checked + .box-content {
+.radio-box input[type="radio"]:checked+.box-content {
     font-weight: bold;
 }
 
@@ -45,4 +47,114 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
+}
+
+.tab-buttons button {
+    padding: 10px 20px;
+    margin-right: 10px;
+    background: #eee;
+    border: none;
+    cursor: pointer;
+}
+
+.tab-buttons button.active {
+    background: #0073aa;
+    color: white;
+}
+
+.tab-content {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+/* Taxonomy Import */
+
+/* Page container */
+
+
+/* Import Card */
+.import-card {
+    background-color: #ffffff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    padding: 40px 30px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.import-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Heading */
+.import-card h3 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* File Input */
+.import-card input[type="file"] {
+    display: block;
+    margin: 0 auto 20px auto;
+    font-size: 16px;
+    padding: 10px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.import-card input[type="file"]:hover {
+    border-color: #007bff;
+}
+
+/* Button */
+.import-card button {
+    padding: 12px 25px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.import-card button:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+}
+
+.import-card button:hover:not(:disabled) {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Loading Message */
+.import-card p {
+    margin-top: 15px;
+    color: #555;
+    font-size: 15px;
+}
+
+/* Spinner */
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border-left-color: #007bff;
+    animation: spin 1s ease infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
