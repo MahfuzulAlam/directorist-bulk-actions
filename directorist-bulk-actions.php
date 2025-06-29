@@ -108,7 +108,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
 
             wp_localize_script( 'dba-admin-script', 'dba_data', [
                 'totalListings' => $this->total_listings(),
-                'restUrl'       => rest_url( 'directorist_bulk_actions/v1/update/coordinate' ),
+                'restUrl'       => rest_url( 'directorist_bulk_actions/v1' ),
                 'nonce'         => wp_create_nonce( 'wp_rest' ),
             ] );
         }

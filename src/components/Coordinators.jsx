@@ -30,7 +30,7 @@ const Coordinators = () => {
       try {
         console.log(offset);
         console.log(progress);
-        const response = await fetch(`${window.dba_data.restUrl}`, {
+        const response = await fetch(`${window.dba_data.restUrl}`+`/update/coordinate`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

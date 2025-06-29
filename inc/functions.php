@@ -76,7 +76,7 @@ function dba_update_coordinate( $request ) {
     if ( empty( $api_key ) ) {
         return new WP_REST_Response([
             'status'  => 'error',
-            'message' => 'Invalid API key',
+            'message' => 'Invalid Google Map API key',
         ], 403 );
     }
 
@@ -161,4 +161,79 @@ if( ! function_exists( 'directorist_get_lat_lng_from_address' ) ){
 
         return false;
 	}
+}
+
+
+// WordPress: functions.php or plugin file
+add_action('rest_api_init', function () {
+    register_rest_route('directorist_bulk_actions/v1', '/export/taxonomies', [
+        'methods' => 'POST',
+        'callback' => 'dba_export_taxonomies',
+        'permission_callback' => '__return_true'
+        // 'permission_callback' => function () {
+        //     return current_user_can('manage_options');
+        // },
+    ]);
+});
+
+function dba_export_taxonomies( $request ) {
+
+    $taxonomy_slug = $request->get_param( 'taxonomy' ) ? $request->get_param( 'taxonomy' ) : 'category';
+    $nonce = $request->get_header( 'x_wp_nonce' ) ? $request->get_header( 'x_wp_nonce' ) : '';
+
+    switch( $taxonomy_slug )
+    {
+        case 'category':
+            $taxonomy = ATBDP_CATEGORY;
+            break;
+        case 'location':
+            $taxonomy = ATBDP_LOCATION;
+            break;
+        default:
+            $taxonomy = ATBDP_CATEGORY;
+            break;
+    }
+
+    if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+        return new WP_REST_Response([
+            'status'  => 'error',
+            'message' => 'Invalid nonce',
+        ], 403 );
+    }
+
+    $terms = get_terms([
+        'taxonomy' => $taxonomy,
+        'hide_empty' => false,
+    ]);
+
+    if (is_wp_error($terms)) {
+        return new WP_REST_Response(['error' => 'Failed to get terms'], 500);
+    }
+
+    $categories = [];
+    foreach ($terms as $term) {
+        $categories[] = [
+            'id' => $term->term_id,
+            'name' => $term->name,
+            'slug' => $term->slug,
+            'description' => $term->description,
+            'parent_slug' => $term->parent ? get_term($term->parent)->slug : '',
+            'category_icon' => get_term_meta($term->term_id, 'category_icon', true),
+            '_directory_type' => get_term_meta($term->term_id, '_directory_type', true),
+            'image' => get_term_meta($term->term_id, 'image', true),
+        ];
+    }
+
+    if( $categories && count( $categories ) > 0 ){
+        return new WP_REST_Response( [
+            'status'  => 'success',
+            'message' => 'Successfully retrived data',
+            'terms' => $categories
+        ], 200);
+    }else{
+        return new WP_REST_Response([
+            'status'  => 'error',
+            'message' => 'Nothing found',
+        ], 500 );
+    }
 }

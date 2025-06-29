@@ -5,6 +5,7 @@ import UpdateListings from './components/updateListings';
 import Coordinators from './components/Coordinators';
 import DeleteListings from './components/DeleteListings';
 import ImportCategories from './components/ImportCategories';
+import ExportTaxonomies from './components/ExportTaxonomies';
 
 const App = () => {
 
@@ -27,6 +28,7 @@ const App = () => {
                 <div className="tab-buttons">
                     <button onClick={() => setActiveTab('coordinators')}>Set Coordinators</button>
                     <button onClick={() => setActiveTab('import_categories')}>Import Categories</button>
+                    <button onClick={() => setActiveTab('export_taxonomies')}>Export Taxonomies</button>
                     <button onClick={() => setActiveTab('delete_listings')}>Delete Listings</button>
                     <button onClick={() => setActiveTab('update_listings')}>Update Listings</button>
                 </div>
@@ -34,6 +36,7 @@ const App = () => {
                 <div className="tab-content">
                     {activeTab === 'coordinators' && <Coordinators isActive={true} />}
                     {activeTab === 'import_categories' && <ImportCategories isActive={true} />}
+                    {activeTab === 'export_taxonomies' && <ExportTaxonomies isActive={true} />}
                     {activeTab === 'delete_listings' && <DeleteListings isActive={true} />}
                     {activeTab === 'update_listings' && <UpdateListings isActive={true} />}
                 </div>
