@@ -28,8 +28,6 @@ const SetCoordinates = () => {
 
     const runBatch = async () => {
       try {
-        console.log(offset);
-        console.log(progress);
         const response = await fetch(`${window.dba_data.restUrl}` + `/update/coordinates`, {
           method: 'POST',
           headers: {
@@ -39,8 +37,6 @@ const SetCoordinates = () => {
           body: JSON.stringify({ offset: currentOffset, limit: limit })
         });
         const data = await response.json();
-
-        console.log(data);
 
         const postsCount = data.posts?.length || 0;
         const updatedCount = data.updated?.length || 0;
@@ -77,6 +73,7 @@ const SetCoordinates = () => {
   return (
     <div className="coordinators-wrapper">
       <h2>Update Listing Coordinates</h2>
+      <p className="note">Coordinates will not be updated if the address field is empty or the Google Maps API is not configured correctly in the Directorist Settings.</p>
       <button
         className="update-coordinates"
         onClick={updateCoordinates}

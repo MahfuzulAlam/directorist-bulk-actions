@@ -17,14 +17,41 @@ const App = () => {
 
             <div className="tab-wrapper">
                 <div className="tab-buttons">
-                    <button onClick={() => setActiveTab('set_coordinates')}>Set Coordinates</button>
-                    <button onClick={() => setActiveTab('import_taxonomies')}>Import Taxonomies</button>
-                    <button onClick={() => setActiveTab('export_taxonomies')}>Export Taxonomies</button>
-                    {/* <button onClick={() => setActiveTab('delete_listings')}>Delete Listings</button>
-                    <button onClick={() => setActiveTab('update_listings')}>Update Listings</button> */}
+                    <button
+                        className={activeTab === 'set_coordinates' ? 'active' : ''}
+                        onClick={() => setActiveTab('set_coordinates')}
+                    >
+                        Set Coordinates
+                    </button>
+                    <button
+                        className={activeTab === 'import_taxonomies' ? 'active' : ''}
+                        onClick={() => setActiveTab('import_taxonomies')}
+                    >
+                        Import Taxonomies
+                    </button>
+                    <button
+                        className={activeTab === 'export_taxonomies' ? 'active' : ''}
+                        onClick={() => setActiveTab('export_taxonomies')}
+                    >
+                        Export Taxonomies
+                    </button>
+                    {/* <button
+                        className={activeTab === 'delete_listings' ? 'active' : ''}
+                        onClick={() => setActiveTab('delete_listings')}
+                    >
+                        Delete Listings
+                    </button>
+                    <button
+                        className={activeTab === 'update_listings' ? 'active' : ''}
+                        onClick={() => setActiveTab('update_listings')}
+                    >
+                        Update Listings
+                    </button> */}
                 </div>
 
+
                 <div className="tab-content">
+                    <p className="warning">Warning: Please do not change the tabs while importing, exporting or updating data.</p>
                     {activeTab === 'set_coordinates' && <SetCoordinates isActive={true} />}
                     {activeTab === 'import_taxonomies' && <ImportTaxonomies isActive={true} />}
                     {activeTab === 'export_taxonomies' && <ExportTaxonomies isActive={true} />}
