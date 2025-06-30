@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name: Directorist - Bulk Actions
  * Plugin URI: https://github.com/MahfuzulAlam/directorist-bulk-actions
@@ -15,7 +16,7 @@
  */
 
 // prevent direct access to the file
-defined( 'ABSPATH' ) || die( 'No direct script access allowed!' );
+defined('ABSPATH') || die('No direct script access allowed!');
 
 
 if (!class_exists('Directorist_Bulk_Actions')) {
@@ -55,12 +56,12 @@ if (!class_exists('Directorist_Bulk_Actions')) {
          */
         public function define_constant()
         {
-            if ( !defined( 'DIRECTORIST_BULK_ACTIONS_URI' ) ) {
-                define( 'DIRECTORIST_BULK_ACTIONS_URI', plugin_dir_url( __FILE__ ) );
+            if (!defined('DIRECTORIST_BULK_ACTIONS_URI')) {
+                define('DIRECTORIST_BULK_ACTIONS_URI', plugin_dir_url(__FILE__));
             }
 
-            if ( !defined( 'DIRECTORIST_BULK_ACTIONS_DIR' ) ) {
-                define( 'DIRECTORIST_BULK_ACTIONS_DIR', plugin_dir_path( __FILE__ ) );
+            if (!defined('DIRECTORIST_BULK_ACTIONS_DIR')) {
+                define('DIRECTORIST_BULK_ACTIONS_DIR', plugin_dir_path(__FILE__));
             }
         }
 
@@ -69,8 +70,10 @@ if (!class_exists('Directorist_Bulk_Actions')) {
          */
         public function includes()
         {
-            include_once( DIRECTORIST_BULK_ACTIONS_DIR . '/inc/functions.php' );
-            include_once( DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-admin-page.php' );
+            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/functions.php');
+            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-admin-page.php');
+            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-update-coordinates.php');
+            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-taxonomy-export.php');
         }
 
         /**
@@ -78,8 +81,8 @@ if (!class_exists('Directorist_Bulk_Actions')) {
          */
         public function enqueues()
         {
-            add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
-            add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+            add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
+            add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         }
 
         /**
@@ -87,7 +90,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
          */
         public function hooks()
         {
-            add_filter( 'directorist_template', array( $this, 'directorist_template' ), 10, 2 );
+            add_filter('directorist_template', array($this, 'directorist_template'), 10, 2);
         }
 
         /**
@@ -101,16 +104,16 @@ if (!class_exists('Directorist_Bulk_Actions')) {
             wp_enqueue_script(
                 'dba-admin-script',
                 DIRECTORIST_BULK_ACTIONS_URI . 'build/app.js',
-                [ 'wp-element' ], // ensures React from WP core is loaded
+                ['wp-element'], // ensures React from WP core is loaded
                 time(),
                 true
             );
 
-            wp_localize_script( 'dba-admin-script', 'dba_data', [
+            wp_localize_script('dba-admin-script', 'dba_data', [
                 'totalListings' => $this->total_listings(),
-                'restUrl'       => rest_url( 'directorist_bulk_actions/v1' ),
-                'nonce'         => wp_create_nonce( 'wp_rest' ),
-            ] );
+                'restUrl'       => rest_url('directorist_bulk_actions/v1'),
+                'nonce'         => wp_create_nonce('wp_rest'),
+            ]);
         }
 
         /**
@@ -119,7 +122,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         public function enqueue_admin_styles()
         {
             // Replace 'your-plugin-name' with the actual name of your plugin's folder.
-            wp_enqueue_style( 'dba-admin-style', DIRECTORIST_BULK_ACTIONS_URI . 'assets/css/admin.css', array(), '1.0' );
+            wp_enqueue_style('dba-admin-style', DIRECTORIST_BULK_ACTIONS_URI . 'assets/css/admin.css', array(), '1.0');
 
             wp_enqueue_style(
                 'my-react-style',
@@ -176,14 +179,14 @@ if (!class_exists('Directorist_Bulk_Actions')) {
          */
         public function total_listings()
         {
-            $posts = get_posts( [
+            $posts = get_posts([
                 'post_type'      => ATBDP_POST_TYPE,
-                'post_status'    => [ 'publish', 'private', 'draft' ],
+                'post_status'    => ['publish', 'private', 'draft'],
                 'numberposts'    => -1,
                 'fields'         => 'ids',
-            ] );
+            ]);
 
-            return $posts ? count( $posts ): 0;
+            return $posts ? count($posts) : 0;
         }
     }
 

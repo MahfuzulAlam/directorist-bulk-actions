@@ -1,53 +1,72 @@
 import React from 'react';
 import { saveAs } from 'file-saver';
 
+/**
+ * Component: ExportTaxonomies
+ * Allows exporting taxonomy terms as a CSV file via a REST API call.
+ */
 const ExportTaxonomies = () => {
 
-  const exportTaxonomies = async ( taxonomy = 'category' ) => {
+  /**
+   * Exports the given taxonomy terms by calling the custom REST API
+   * and generating a downloadable CSV file.
+   *
+   * @param {string} taxonomy - The taxonomy slug to export (e.g., 'category', 'location').
+   */
+  const exportTaxonomies = async (taxonomy = 'category') => {
     try {
-      const response = await fetch(`${window.dba_data.restUrl}` + `/export/taxonomies`, {
+      // Send request to the backend REST API endpoint
+      const response = await fetch(`${window.dba_data.restUrl}/export/taxonomies`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-WP-Nonce': window.dba_data.nonce,
         },
-        body: JSON.stringify({ taxonomy: taxonomy })
+        body: JSON.stringify({ taxonomy })
       });
 
+      // Parse the response JSON
       const data = await response.json();
+      console.log(data);
 
-      console.log( data );
+      if (data.status !== 'success') {
+        throw new Error('Failed to fetch taxonomy terms');
+      }
 
-      if (data.status != 'success') throw new Error('Failed to fetch categories');
+      const categories = data.terms || [];
 
-      const categories = data.terms ? data.terms : [];
-
+      // Define CSV headers
       const headers = [
-        'id', 'name', 'slug', 'description', 'parent_slug', 'category_icon', '_directory_type', 'image',
+        'id', 'name', 'slug', 'description', 'parent_slug', 'category_icon', 'directory_type', 'image',
       ];
 
+      // Generate CSV content rows
       const csvRows = [
         headers.join(','),
-        ...categories.map(cat => headers.map(h => {
-          const value = cat[h];
-          return `"${String(value ?? '').replace(/"/g, '""')}"`;
-        }).join(','))
+        ...categories.map(cat =>
+          headers.map(h => {
+            const value = cat[h];
+            return `"${String(value ?? '').replace(/"/g, '""')}"`;
+          }).join(',')
+        )
       ];
 
+      // Create a Blob and trigger download
       const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
       saveAs(blob, `${taxonomy}.csv`);
+
     } catch (err) {
       console.error('Export failed:', err);
     }
   };
 
   return (
-    <div>
-      <div>Export Taxonomies</div>
-      <button onClick={()=>exportTaxonomies('location')}>Export Categories</button>
+    <div className='export-taxonomy-wrapper'>
+      <h3>Export Taxonomies</h3>
+      <button onClick={() => exportTaxonomies('category')}>Export Categories</button>
+      <button onClick={() => exportTaxonomies('location')}>Export Locations</button>
     </div>
-  )
-
-}
+  );
+};
 
 export default ExportTaxonomies;

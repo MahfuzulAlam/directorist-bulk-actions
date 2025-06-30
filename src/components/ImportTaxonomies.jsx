@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Papa from 'papaparse';
 import axios from 'axios';
 
-const ImportCategories = () => {
+const ImportTaxonomies = () => {
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
 
@@ -74,4 +74,4 @@ const ImportCategories = () => {
   );
 };
 
-export default ImportCategories;
+export default ImportTaxonomies;

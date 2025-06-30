@@ -30,7 +30,7 @@ const Coordinators = () => {
       try {
         console.log(offset);
         console.log(progress);
-        const response = await fetch(`${window.dba_data.restUrl}`+`/update/coordinate`, {
+        const response = await fetch(`${window.dba_data.restUrl}` + `/update/coordinates`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -75,57 +75,35 @@ const Coordinators = () => {
   }
 
   return (
-    <div>
-      <h2>Update Coordinators</h2>
-      <div style={{ maxWidth: '500px', margin: '40px auto', fontFamily: 'Arial' }}>
-        <h2>Update Listing Coordinates</h2>
-        <button
-          className="update-coordinates"
-          onClick={updateCoordinates}
-          disabled={updating}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: updating ? '#999' : '#007bff',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: updating ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {updating ? 'Updating...' : 'Start Update'}
-        </button>
+    <div className="coordinators-wrapper">
+      <h2>Update Listing Coordinates</h2>
+      <button
+        className="update-coordinates"
+        onClick={updateCoordinates}
+        disabled={updating}
+      >
+        {updating ? 'Updating...' : 'Start Update'}
+      </button>
 
-        <div style={{ marginTop: '20px' }}>
-          <div style={{
-            height: '20px',
-            width: '100%',
-            backgroundColor: '#eee',
-            borderRadius: '10px',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              height: '100%',
-              width: `${progress}%`,
-              backgroundColor: '#28a745',
-              transition: 'width 0.3s'
-            }}></div>
-          </div>
-          <p style={{ marginTop: '10px' }}>
-            Total Updated: <strong>{totalUpdated}</strong>
-          </p>
-          <p style={{ marginTop: '10px' }}>
-            Total Missing Address: <strong>{missingAddress}</strong>
-          </p>
-          {completed && <p style={{ color: 'green' }}>✅ All listings processed!</p>}
-        </div>
+      <div className="progress-bar">
+        <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+      </div>
 
-        <div style={{ marginTop: '20px', fontSize: '14px', color: '#555', overflow: 'scroll', maxHeight: '300px' }}>
-          {[...log].reverse().map((entry, i) => (
-            <div key={i}>- {entry}</div>
-          ))}
-        </div>
+      <p className="coordinator-status">
+        Total Updated: <strong>{totalUpdated}</strong>
+      </p>
+      <p className="coordinator-status">
+        Total Missing Address: <strong>{missingAddress}</strong>
+      </p>
+      {completed && <p className="coordinator-status" style={{ color: 'green' }}>✅ All listings processed!</p>}
+
+      <div className="coordinator-log">
+        {[...log].reverse().map((entry, i) => (
+          <div key={i}>- {entry}</div>
+        ))}
       </div>
     </div>
+
   )
 }
 
