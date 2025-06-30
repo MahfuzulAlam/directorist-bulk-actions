@@ -80,7 +80,7 @@ if (! class_exists('DBA_Taxonomy_Export')):
                     'name'            => wp_specialchars_decode($term->name),
                     'slug'            => wp_specialchars_decode($term->slug),
                     'description'     => wp_specialchars_decode($term->description),
-                    'parent_slug'     => $term->parent ? wp_specialchars_decode(get_term($term->parent)->slug) : '',
+                    'parent'          => $term->parent ? wp_specialchars_decode(get_term($term->parent)->name) : '',
                     'category_icon'   => get_term_meta($term->term_id, 'category_icon', true),
                     'directory_type'  => $this->get_directory_types($term),
                     'image'           => $this->get_term_image_url($term),

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const Coordinators = () => {
+const SetCoordinates = () => {
 
   const [offset, setOffset] = useState(0);
   const [totalUpdated, setTotalUpdated] = useState(0);
@@ -103,8 +103,7 @@ const Coordinators = () => {
         ))}
       </div>
     </div>
-
   )
 }
 
-export default Coordinators;
+export default SetCoordinates;

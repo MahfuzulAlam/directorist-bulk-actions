@@ -37,7 +37,7 @@ const ExportTaxonomies = () => {
 
       // Define CSV headers
       const headers = [
-        'id', 'name', 'slug', 'description', 'parent_slug', 'category_icon', 'directory_type', 'image',
+        'id', 'name', 'slug', 'description', 'parent', 'category_icon', 'directory_type', 'image',
       ];
 
       // Generate CSV content rows

@@ -74,6 +74,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-admin-page.php');
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-update-coordinates.php');
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-taxonomy-export.php');
+            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-taxonomy-import.php');
         }
 
         /**

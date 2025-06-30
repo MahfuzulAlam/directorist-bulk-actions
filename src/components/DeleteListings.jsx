@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const DeleteListings = ({isActive}) => {
+const DeleteListings = ({ isActive }) => {
   const [data, setData] = useState(null);
   useEffect(() => {
     if (isActive) {
