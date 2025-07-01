@@ -67,6 +67,7 @@ if (! class_exists('DBA_Update_Coordinates')):
 
             $posts = get_posts([
                 'post_type'      => ATBDP_POST_TYPE,
+                //'post_status'    => ['draft'],
                 'post_status'    => ['publish', 'private', 'draft'],
                 'numberposts'    => $limit,
                 'fields'         => 'ids',
@@ -98,15 +99,12 @@ if (! class_exists('DBA_Update_Coordinates')):
                     'posts' => $posts,
                     'updated'   => $updated,
                 ]);
+            } else {
+                return rest_ensure_response([
+                    'message' => 'The process has been completed Successfully!',
+                    'status'  => 'success',
+                ]);
             }
-
-            return rest_ensure_response([
-                'message' => 'Coordinates Update Failed!',
-                'status'  => 'error',
-                'offset' => $offset,
-                'posts' => $posts,
-                'udpated' => $updated,
-            ]);
         }
 
         public function get_lat_lng_from_address($address, $listing_id = 0)

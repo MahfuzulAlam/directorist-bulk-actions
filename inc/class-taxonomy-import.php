@@ -76,10 +76,12 @@ if (! class_exists('DBA_Taxonomy_Import')):
                 $slug = sanitize_title($item['slug'] ?? '');
                 $description = sanitize_textarea_field($item['description'] ?? '');
                 $parent = isset($item['parent']) && !empty($item['parent']) ? $item['parent'] : '';
+                $image = isset($item['image']) && !empty($item['image']) ? dba_upload_image_from_url($item['image']) : '';
+                //$image = !empty($image) && ! is_wp_error($image) ? $image : '';
                 $meta = [
                     'category_icon'    => $item['category_icon'] ?? '',
                     '_directory_type'  => isset($item['directory_type']) && !empty($item['directory_type']) ? $this->get_directory_types($item['directory_type']) : '',
-                    'image'            => $item['image'] ?? '',
+                    'image'            => $image,
                 ];
 
                 if (empty($name)) {
