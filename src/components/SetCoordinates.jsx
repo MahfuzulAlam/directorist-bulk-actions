@@ -8,6 +8,7 @@ const SetCoordinates = () => {
   const [updating, setUpdating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [showError, setShowError] = useState('');
   const [log, setLog] = useState([]);
 
   const limit = 5;
@@ -22,6 +23,7 @@ const SetCoordinates = () => {
     setOffset(0);
     setProgress(0);
     setLog([]);
+    setShowError('');
 
     let currentOffset = 0;
     let allUpdated = 0;
@@ -37,6 +39,12 @@ const SetCoordinates = () => {
           body: JSON.stringify({ offset: currentOffset, limit: limit })
         });
         const data = await response.json();
+
+        if (data.status == 'error') {
+          setShowError(data.message);
+          setUpdating(false);
+          return;
+        }
 
         const postsCount = data.posts?.length || 0;
         const updatedCount = data.updated?.length || 0;
@@ -74,6 +82,9 @@ const SetCoordinates = () => {
     <div className="coordinators-wrapper">
       <h2>Update Listing Coordinates</h2>
       <p className="note">Coordinates will not be updated if the address field is empty or the Google Maps API is not configured correctly in the Directorist Settings.</p>
+      {showError && (
+        <p className="error">{showError}</p>
+      )}
       <button
         className="update-coordinates"
         onClick={updateCoordinates}
@@ -82,23 +93,31 @@ const SetCoordinates = () => {
         {updating ? 'Updating...' : 'Start Update'}
       </button>
 
-      <div className="progress-bar">
-        <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
-      </div>
+      {progress > 0 && (
+        <div className="progress-bar">
+          <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+        </div>
+      )}
 
-      <p className="coordinator-status">
-        Total Updated: <strong>{totalUpdated}</strong>
-      </p>
-      <p className="coordinator-status">
-        Total Missing Address: <strong>{missingAddress}</strong>
-      </p>
+      {totalUpdated > 0 && (
+        <p className="coordinator-status">
+          Total Updated: <strong>{totalUpdated}</strong>
+        </p>
+      )}
+      {missingAddress > 0 && (
+        <p className="coordinator-status">
+          Total Missing Address: <strong>{missingAddress}</strong>
+        </p>
+      )}
       {completed && <p className="coordinator-status" style={{ color: 'green' }}>✅ All listings processed!</p>}
 
-      <div className="coordinator-log">
-        {[...log].reverse().map((entry, i) => (
-          <div key={i}>- {entry}</div>
-        ))}
-      </div>
+      {log.length > 0 && (
+        <div className="coordinator-log">
+          {[...log].reverse().map((entry, i) => (
+            <div key={i}>- {entry}</div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

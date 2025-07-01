@@ -9,7 +9,7 @@ import ExportTaxonomies from './components/ExportTaxonomies';
 
 const App = () => {
 
-    const [activeTab, setActiveTab] = useState('set_coordinates');
+    const [activeTab, setActiveTab] = useState('update_listings');
 
     return (
         <div className="wrap">
@@ -18,10 +18,10 @@ const App = () => {
             <div className="tab-wrapper">
                 <div className="tab-buttons">
                     <button
-                        className={activeTab === 'set_coordinates' ? 'active' : ''}
-                        onClick={() => setActiveTab('set_coordinates')}
+                        className={activeTab === 'export_taxonomies' ? 'active' : ''}
+                        onClick={() => setActiveTab('export_taxonomies')}
                     >
-                        Set Coordinates
+                        Export Taxonomies
                     </button>
                     <button
                         className={activeTab === 'import_taxonomies' ? 'active' : ''}
@@ -30,25 +30,24 @@ const App = () => {
                         Import Taxonomies
                     </button>
                     <button
-                        className={activeTab === 'export_taxonomies' ? 'active' : ''}
-                        onClick={() => setActiveTab('export_taxonomies')}
+                        className={activeTab === 'update_listings' ? 'active' : ''}
+                        onClick={() => setActiveTab('update_listings')}
                     >
-                        Export Taxonomies
+                        Update Listings
                     </button>
-                    {/* <button
+                    <button
                         className={activeTab === 'delete_listings' ? 'active' : ''}
                         onClick={() => setActiveTab('delete_listings')}
                     >
                         Delete Listings
                     </button>
                     <button
-                        className={activeTab === 'update_listings' ? 'active' : ''}
-                        onClick={() => setActiveTab('update_listings')}
+                        className={activeTab === 'set_coordinates' ? 'active' : ''}
+                        onClick={() => setActiveTab('set_coordinates')}
                     >
-                        Update Listings
-                    </button> */}
+                        Set Coordinates
+                    </button>
                 </div>
-
 
                 <div className="tab-content">
                     <p className="warning">Warning: Please do not change the tabs while importing, exporting or updating data.</p>

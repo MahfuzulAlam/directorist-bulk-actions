@@ -57,12 +57,13 @@ if (! class_exists('DBA_Update_Coordinates')):
             if (empty($api_key)) {
                 return new WP_REST_Response([
                     'status'  => 'error',
-                    'message' => 'Invalid Google Map API key',
+                    'message' => 'Google Map API key does not exists!',
                 ], 403);
             }
 
             $count = 0;
             $updated = [];
+            $address_missing = 0;
 
             $posts = get_posts([
                 'post_type'      => ATBDP_POST_TYPE,
@@ -76,9 +77,10 @@ if (! class_exists('DBA_Update_Coordinates')):
                 foreach ($posts as $post) {
                     // Update Coordinates
                     $address = get_post_meta($post, '_address', true);
-                    $is_updated = $this->get_lat_lng_from_address($address, $post);
-
-                    if ($is_updated) $updated[] = $post;
+                    if ($address) {
+                        $is_updated = $this->get_lat_lng_from_address($address, $post);
+                        if ($is_updated) $updated[] = $post;
+                    }
 
                     //Counter
                     $count++;

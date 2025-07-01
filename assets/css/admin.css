@@ -65,6 +65,18 @@
     line-height: 1.6;
 }
 
+.tab-wrapper p.error {
+    background-color: #fdecea;
+    border-left: 4px solid #e53935;
+    color: #b71c1c;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-top: 20px;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
 /* Coordinates - Starts */
 .coordinators-wrapper {
     background-color: #ffffff;

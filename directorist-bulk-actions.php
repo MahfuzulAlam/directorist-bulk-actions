@@ -112,6 +112,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
 
             wp_localize_script('dba-admin-script', 'dba_data', [
                 'totalListings' => $this->total_listings(),
+                'directoryTypes' => $this->get_directory_types(),
                 'restUrl'       => rest_url('directorist_bulk_actions/v1'),
                 'nonce'         => wp_create_nonce('wp_rest'),
             ]);
@@ -188,6 +189,21 @@ if (!class_exists('Directorist_Bulk_Actions')) {
             ]);
 
             return $posts ? count($posts) : 0;
+        }
+
+        /**
+         * Get Directory Types
+         */
+        public function get_directory_types()
+        {
+            $directory_types = [];
+            $directories =  directorist_get_directories();
+            if (count($directories) > 0) {
+                foreach ($directories as $directory) {
+                    $directory_types[$directory->term_id] = $directory->name;
+                }
+            }
+            return $directory_types;
         }
     }
 

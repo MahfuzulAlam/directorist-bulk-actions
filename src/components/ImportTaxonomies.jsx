@@ -48,8 +48,6 @@ const ImportTaxonomies = () => {
     for (let i = 0; i < total; i += batchSize) {
       const batch = rows.slice(i, i + batchSize);
 
-      console.log(batch);
-
       try {
         const response = await axios.post(`${window.dba_data.restUrl}/import/taxonomies`, {
           taxonomy,
@@ -61,24 +59,24 @@ const ImportTaxonomies = () => {
           },
         });
 
-        console.log(response);
-
         response.data?.forEach((result, index) => {
           const row = batch[index];
           if (result.status === 'updated') {
             updated++;
+            setTotalUpdated(updated);
             setLog(prev => [...prev, `✅ Updated: ${row.name}`]);
           } else if (result.status === 'added') {
             added++;
+            setTotalAdded(added);
             setLog(prev => [...prev, `🆕 Added: ${row.name}`]);
           } else {
             failed++;
+            setTotalFailed(failed);
             setLog(prev => [...prev, `❌ Failed: ${row.name}`]);
           }
         });
 
       } catch (err) {
-        console.log(err);
         batch.forEach(row => {
           failed++;
           setLog(prev => [...prev, `❌ Failed: ${row.name}`]);
@@ -120,24 +118,34 @@ const ImportTaxonomies = () => {
           {loading ? 'Importing...' : 'Start Import'}
         </button>
 
-        <div className="progress-bar">
-          <div
-            className="progress-bar-fill"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
+        {progress > 0 && (
+          <div className="progress-bar">
+            <div
+              className="progress-bar-fill"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+        )}
 
         <div className="coordinator-status">
-          <p>Total Updated: <strong>{totalUpdated}</strong></p>
-          <p>Total Added: <strong>{totalAdded}</strong></p>
-          <p>Total Failed: <strong>{totalFailed}</strong></p>
+          {totalUpdated > 0 && (
+            <p>Total Updated: <strong>{totalUpdated}</strong></p>
+          )}
+          {totalAdded > 0 && (
+            <p>Total Added: <strong>{totalAdded}</strong></p>
+          )}
+          {totalFailed > 0 && (
+            <p>Total Failed: <strong>{totalFailed}</strong></p>
+          )}
         </div>
 
-        <div className="coordinator-log">
-          {[...log].reverse().map((entry, index) => (
-            <div key={index}>- {entry}</div>
-          ))}
-        </div>
+        {log.length > 0 && (
+          <div className="coordinator-log">
+            {[...log].reverse().map((entry, index) => (
+              <div key={index}>- {entry}</div>
+            ))}
+          </div>
+        )}
 
         {loading && <div className="spinner"></div>}
       </div>
