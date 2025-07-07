@@ -3,154 +3,154 @@ import Papa from 'papaparse';
 import axios from 'axios';
 
 const UpdateListings = () => {
-  const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState(null);
-  const [directory, setDirectory] = useState(0);
-  const [totalUpdated, setTotalUpdated] = useState(0);
-  const [totalAdded, setTotalAdded] = useState(0);
-  const [totalFailed, setTotalFailed] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [log, setLog] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [file, setFile] = useState(null);
+    const [directory, setDirectory] = useState(0);
+    const [totalUpdated, setTotalUpdated] = useState(0);
+    const [totalAdded, setTotalAdded] = useState(0);
+    const [totalFailed, setTotalFailed] = useState(0);
+    const [progress, setProgress] = useState(0);
+    const [log, setLog] = useState([]);
 
-  const handleCSVChange = (e) => {
-    try {
-      const csvfile = e.target.files[0];
-      if (csvfile) setFile(csvfile);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+    const handleCSVChange = (e) => {
+        try {
+            const csvfile = e.target.files[0];
+            if (csvfile) setFile(csvfile);
+        } catch (err) {
+            console.log(err);
+        }
+    };
 
-  const handleCSVUpload = () => {
-    if (!file) return;
-    if (!directory) return;
+    const handleCSVUpload = () => {
+        if (!file) return;
+        if (!directory) return;
 
-    setLoading(true);
-    setTotalUpdated(0);
-    setTotalAdded(0);
-    setTotalFailed(0);
-    setLog([]);
+        setLoading(true);
+        setTotalUpdated(0);
+        setTotalAdded(0);
+        setTotalFailed(0);
+        setLog([]);
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const rows = results.data;
-        alert(directory);
-        processBatches(rows);
-      },
-    });
-  };
-
-  const processBatches = async (rows) => {
-    let updated = 0, added = 0, failed = 0;
-    const batchSize = 10;
-    const total = rows.length;
-
-    for (let i = 0; i < total; i += batchSize) {
-      const batch = rows.slice(i, i + batchSize);
-
-      try {
-        const response = await axios.post(`${window.dba_data.restUrl}/update/listings`, {
-          directory,
-          items: batch,
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-WP-Nonce': window.dba_data?.nonce || '',
-          },
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                const rows = results.data;
+                processBatches(rows);
+            },
         });
+    };
 
-        response.data?.forEach((result, index) => {
-          const row = batch[index];
-          if (result.status === 'updated') {
-            updated++;
-            setTotalUpdated(updated);
-            setLog(prev => [...prev, `✅ Updated: ${row.name}`]);
-          } else {
-            failed++;
-            setTotalFailed(failed);
-            setLog(prev => [...prev, `❌ Failed: ${row.name}`]);
-          }
-        });
+    const processBatches = async (rows) => {
+        let updated = 0, added = 0, failed = 0;
+        const batchSize = 10;
+        const total = rows.length;
 
-      } catch (err) {
-        batch.forEach(row => {
-          failed++;
-          setLog(prev => [...prev, `❌ Failed: ${row.name}`]);
-        });
-      }
+        for (let i = 0; i < total; i += batchSize) {
+            const batch = rows.slice(i, i + batchSize);
 
-      setProgress(Math.round(((i + batchSize) / total) * 100));
-    }
+            try {
+                const response = await axios.post(`${window.dba_data.restUrl}/update/listings`, {
+                    directory,
+                    items: batch,
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-WP-Nonce': window.dba_data?.nonce || '',
+                    },
+                });
+                console.log(response);
+                response.data.results?.forEach((result, index) => {
+                    const row = batch[index];
+                    if (result.status === 'success') {
+                        updated++;
+                        setTotalUpdated(updated);
+                        setLog(prev => [...prev, `✅ Updated: ${row.listing_title} - ${result.message}`]);
+                    } else {
+                        failed++;
+                        setTotalFailed(failed);
+                        setLog(prev => [...prev, `❌ Failed: ${row.listing_title} - ${result.message}`]);
+                    }
+                });
 
-    setTotalUpdated(updated);
-    setTotalAdded(added);
-    setTotalFailed(failed);
-    setLoading(false);
-  };
+            } catch (err) {
+                console.log(err);
+                batch.forEach(row => {
+                    failed++;
+                    setLog(prev => [...prev, `❌ Failed: ${row.name}`]);
+                });
+            }
 
-  return (
-    <div className="csv-import-container">
-      <div className="import-card">
-        <h3>Update Listings</h3>
-        <p>Select the directory type you want to upload the listings with CSV file</p>
-        <p className="note">Listings will be updated if they match either the listings ID only.</p>
+            setProgress(Math.round(((i + batchSize) / total) * 100));
+        }
 
-        <select
-          value={directory}
-          onChange={(e) => setDirectory(e.target.value)}
-          className="directory-select"
-        >
-          <option value="">Directory type</option>
-          {window.dba_data.directoryTypes &&
-            Object.entries(window.dba_data.directoryTypes).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-        </select>
+        setTotalUpdated(updated);
+        setTotalAdded(added);
+        setTotalFailed(failed);
+        setLoading(false);
+    };
 
-        <input type="file" accept=".csv" onChange={handleCSVChange} />
+    return (
+        <div className="csv-import-container">
+            <div className="import-card">
+                <h3>Update Listings</h3>
+                <p>Select the directory type you want to upload the listings with CSV file</p>
+                <p className="note">Listings will be updated if they match either the listings ID only.</p>
 
-        <button
-          className="import-taxonomies"
-          onClick={handleCSVUpload}
-          disabled={loading}
-        >
-          {loading ? 'Updating...' : 'Start Update'}
-        </button>
+                <select
+                    value={directory}
+                    onChange={(e) => setDirectory(e.target.value)}
+                    className="directory-select"
+                >
+                    <option value="">Directory type</option>
+                    {window.dba_data.directoryTypes &&
+                        Object.entries(window.dba_data.directoryTypes).map(([key, label]) => (
+                            <option key={key} value={key}>
+                                {label}
+                            </option>
+                        ))}
+                </select>
 
-        {progress > 0 && (
-          <div className="progress-bar">
-            <div
-              className="progress-bar-fill"
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
-        )}
+                <input type="file" accept=".csv" onChange={handleCSVChange} />
 
-        <div className="coordinator-status">
-          {totalUpdated > 0 && (
-            <p>Total Updated: <strong>{totalUpdated}</strong></p>
-          )}
-          {totalFailed > 0 && (
-            <p>Total Failed: <strong>{totalFailed}</strong></p>
-          )}
+                <button
+                    className="import-taxonomies"
+                    onClick={handleCSVUpload}
+                    disabled={loading}
+                >
+                    {loading ? 'Updating...' : 'Start Update'}
+                </button>
+
+                {progress > 0 && (
+                    <div className="progress-bar">
+                        <div
+                            className="progress-bar-fill"
+                            style={{ width: `${progress}%` }}
+                        ></div>
+                    </div>
+                )}
+
+                <div className="coordinator-status">
+                    {totalUpdated > 0 && (
+                        <p>Total Updated: <strong>{totalUpdated}</strong></p>
+                    )}
+                    {totalFailed > 0 && (
+                        <p>Total Failed: <strong>{totalFailed}</strong></p>
+                    )}
+                </div>
+
+                {log.length > 0 && (
+                    <div className="coordinator-log">
+                        {[...log].reverse().map((entry, index) => (
+                            <div key={index}>- {entry}</div>
+                        ))}
+                    </div>
+                )}
+
+                {loading && <div className="spinner"></div>}
+            </div>
         </div>
-
-        {log.length > 0 && (
-          <div className="coordinator-log">
-            {[...log].reverse().map((entry, index) => (
-              <div key={index}>- {entry}</div>
-            ))}
-          </div>
-        )}
-
-        {loading && <div className="spinner"></div>}
-      </div>
-    </div>
-  );
+    );
 };
 
 export default UpdateListings;

@@ -29,6 +29,11 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         private static $instance;
 
         /**
+         * Plugin Version
+         */
+        private $version = '2.0.0';
+
+        /**
          * Instance
          */
         public static function instance()
@@ -75,6 +80,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-update-coordinates.php');
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-taxonomy-export.php');
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-taxonomy-import.php');
+            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-update-listings.php');
         }
 
         /**
@@ -106,7 +112,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
                 'dba-admin-script',
                 DIRECTORIST_BULK_ACTIONS_URI . 'build/app.js',
                 ['wp-element'], // ensures React from WP core is loaded
-                time(),
+                $this->version,
                 true
             );
 
@@ -124,14 +130,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         public function enqueue_admin_styles()
         {
             // Replace 'your-plugin-name' with the actual name of your plugin's folder.
-            wp_enqueue_style('dba-admin-style', DIRECTORIST_BULK_ACTIONS_URI . 'assets/css/admin.css', array(), '1.0');
-
-            wp_enqueue_style(
-                'my-react-style',
-                DIRECTORIST_BULK_ACTIONS_URI . 'build/style.css',
-                [],
-                time()
-            );
+            wp_enqueue_style('dba-admin-style', DIRECTORIST_BULK_ACTIONS_URI . 'assets/css/admin.css', array(), $this->version);
         }
 
         /**

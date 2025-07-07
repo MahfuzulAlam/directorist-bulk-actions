@@ -151,3 +151,24 @@ if (! function_exists('dba_legacy_insert_attachment_from_url')) {
         return $id;
     }
 }
+
+/**
+ * Converts a CSV date string (e.g. "29/05/2025 08:17") to WP format "Y-m-d H:i:s"
+ *
+ * @param string $csv_date
+ * @return string|null Formatted date string or null if invalid
+ */
+function format_csv_date_to_wp($csv_date)
+{
+    if (empty($csv_date)) {
+        return null;
+    }
+
+    $date_obj = DateTime::createFromFormat('d/m/Y H:i', trim($csv_date));
+
+    if ($date_obj) {
+        return $date_obj->format('Y-m-d H:i:s');
+    }
+
+    return null;
+}

@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import UpdateListings from './components/updateListings';
-import SetCoordinates from './components/SetCoordinates';
-import DeleteListings from './components/DeleteListings';
-import ImportTaxonomies from './components/ImportTaxonomies';
-import ExportTaxonomies from './components/ExportTaxonomies';
+import Tabs from './components';
 
 const App = () => {
-
     const [activeTab, setActiveTab] = useState('update_listings');
+
+    const tabs = [
+        { key: 'export_taxonomies', label: 'Export Taxonomies' },
+        { key: 'import_taxonomies', label: 'Import Taxonomies' },
+        { key: 'update_listings', label: 'Update Listings' },
+        { key: 'delete_listings', label: 'Delete Listings' },
+        { key: 'set_coordinates', label: 'Set Coordinates' },
+    ];
 
     return (
         <div className="wrap">
@@ -17,50 +20,36 @@ const App = () => {
 
             <div className="tab-wrapper">
                 <div className="tab-buttons">
-                    <button
-                        className={activeTab === 'export_taxonomies' ? 'active' : ''}
-                        onClick={() => setActiveTab('export_taxonomies')}
-                    >
-                        Export Taxonomies
-                    </button>
-                    <button
-                        className={activeTab === 'import_taxonomies' ? 'active' : ''}
-                        onClick={() => setActiveTab('import_taxonomies')}
-                    >
-                        Import Taxonomies
-                    </button>
-                    <button
-                        className={activeTab === 'update_listings' ? 'active' : ''}
-                        onClick={() => setActiveTab('update_listings')}
-                    >
-                        Update Listings
-                    </button>
-                    <button
-                        className={activeTab === 'delete_listings' ? 'active' : ''}
-                        onClick={() => setActiveTab('delete_listings')}
-                    >
-                        Delete Listings
-                    </button>
-                    <button
-                        className={activeTab === 'set_coordinates' ? 'active' : ''}
-                        onClick={() => setActiveTab('set_coordinates')}
-                    >
-                        Set Coordinates
-                    </button>
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.key}
+                            className={activeTab === tab.key ? 'active' : ''}
+                            onClick={() => setActiveTab(tab.key)}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
                 </div>
 
                 <div className="tab-content">
-                    <p className="warning">Warning: Please do not change the tabs while importing, exporting or updating data.</p>
-                    {activeTab === 'set_coordinates' && <SetCoordinates isActive={true} />}
-                    {activeTab === 'import_taxonomies' && <ImportTaxonomies isActive={true} />}
-                    {activeTab === 'export_taxonomies' && <ExportTaxonomies isActive={true} />}
-                    {activeTab === 'delete_listings' && <DeleteListings isActive={true} />}
-                    {activeTab === 'update_listings' && <UpdateListings isActive={true} />}
+                    <p className="warning">
+                        Warning: Please do not change the tabs while importing, exporting or updating data.
+                    </p>
+
+                    {activeTab === 'set_coordinates' && <Tabs.SetCoordinates isActive />}
+                    {activeTab === 'import_taxonomies' && <Tabs.ImportTaxonomies isActive />}
+                    {activeTab === 'export_taxonomies' && <Tabs.ExportTaxonomies isActive />}
+                    {activeTab === 'delete_listings' && <Tabs.DeleteListings isActive />}
+                    {activeTab === 'update_listings' && <Tabs.UpdateListings isActive />}
                 </div>
             </div>
         </div>
     );
 };
 
-const root = createRoot(document.getElementById('my-react-app'));
-root.render(<App />);
+// Mount only if the target element exists
+const container = document.getElementById('my-react-app');
+if (container) {
+    const root = createRoot(container);
+    root.render(<App />);
+}
