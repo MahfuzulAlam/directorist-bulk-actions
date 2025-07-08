@@ -19,24 +19,26 @@ if (!class_exists('DBA_Update_Listings')) :
                 array(
                     'methods'             => 'POST',
                     'callback'            => array($this, 'handle_update_listings'),
-                    'permission_callback' => '__return_true',
+                    'permission_callback' => function () {
+                        return current_user_can('manage_options');
+                    },
                 )
             );
         }
 
-        public function handle_update_listings($request)
+        public function handle_update_listings(\WP_REST_Request $request)
         {
             $directory = $request->get_param('directory');
             $items     = $request->get_param('items');
-            $nonce     = $request->get_header('x_wp_nonce');
+            // $nonce     = $request->get_header('x_wp_nonce');
 
             if (empty($directory)) {
                 return new WP_REST_Response(['error' => 'Invalid or missing directory type'], 400);
             }
 
-            if (!wp_verify_nonce($nonce, 'wp_rest')) {
-                return new WP_REST_Response(['status' => 'error', 'message' => 'Invalid nonce'], 403);
-            }
+            // if (!wp_verify_nonce($nonce, 'dba_rest')) {
+            //     return new WP_REST_Response(['status' => 'error', 'message' => 'Invalid nonce'], 403);
+            // }
 
             $results = [];
 
@@ -63,11 +65,11 @@ if (!class_exists('DBA_Update_Listings')) :
                 }
 
                 // Prepare taxonomy and meta input arrays
-                $tax_input  = $this->prepare_tax_input($item);
+                $tax_input  = $this->prepare_tax_input($item, $directory);
                 $meta_input = $this->prepare_meta_input($item);
 
                 // Ensure taxonomy terms exist before using tax_input
-                //$this->ensure_terms_exist($tax_input);
+                //$this->ensure_terms_exist($tax_input, $directory);
 
                 $post_data = [
                     'ID'           => $post_id,
@@ -107,7 +109,7 @@ if (!class_exists('DBA_Update_Listings')) :
         /**
          * Prepare taxonomy input from raw item data
          */
-        private function prepare_tax_input($item)
+        private function prepare_tax_input($item, $directory)
         {
             $tax_input = [];
 
@@ -127,6 +129,10 @@ if (!class_exists('DBA_Update_Listings')) :
 
                         if (!$term) {
                             $term = wp_insert_term($term_name, $taxonomy);
+                            // Update directory type
+                            if ($taxonomy != ATBDP_TAGS && !is_wp_error($term) && isset($term['term_id'])) {
+                                update_term_meta($term['term_id'], '_directory_type', [$directory]);
+                            }
                         }
 
                         if (!is_wp_error($term)) {
@@ -155,8 +161,11 @@ if (!class_exists('DBA_Update_Listings')) :
                     continue;
                 }
 
+                $value = $value ? self::unescape_data($value) : '';
+                $value = $this->maybe_unserialize_csv_string($value);
+
                 $meta_key = '_' . ltrim(sanitize_key($key), '_');
-                $meta_input[$meta_key] = sanitize_text_field($value);
+                $meta_input[$meta_key] = $value;
             }
 
             return $meta_input;
@@ -165,17 +174,48 @@ if (!class_exists('DBA_Update_Listings')) :
         /**
          * Ensure all terms exist before assigning via tax_input
          */
-        private function ensure_terms_exist($tax_input)
+        private function ensure_terms_exist($tax_input, $directory)
         {
             foreach ($tax_input as $taxonomy => $terms) {
                 if (!taxonomy_exists($taxonomy)) continue;
 
                 foreach ($terms as $term) {
                     if (!term_exists($term, $taxonomy)) {
-                        wp_insert_term($term, $taxonomy);
+                        $new_term = wp_insert_term($term, $taxonomy);
+                        if (!is_wp_error($new_term) && isset($new_term['term_id'])) {
+                            update_term_meta($new_term['term_id'], '_directory_type', [$directory]);
+                        }
                     }
                 }
             }
+        }
+
+        protected static function unescape_data($value)
+        {
+            $active_content_triggers = array("'=", "'+", "'-", "'@");
+
+            if (in_array(mb_substr($value, 0, 2), $active_content_triggers, true)) {
+                $value = mb_substr($value, 1);
+            }
+
+            return $value;
+        }
+
+        // maybe_unserialize_csv_string
+        public function maybe_unserialize_csv_string($data)
+        {
+            if (! is_string($data)) {
+                return $data;
+            }
+
+            $_data = str_replace("'", '"', $data);
+            $_data = maybe_unserialize(maybe_unserialize($_data));
+
+            if (! empty($_data)) {
+                return $_data;
+            }
+
+            return $data;
         }
     }
 

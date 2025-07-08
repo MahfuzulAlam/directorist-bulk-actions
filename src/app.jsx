@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { createRoot } from 'react-dom/client';
-
+import { useState, createRoot } from '@wordpress/element';
 import Tabs from './components';
 
 const App = () => {
@@ -47,9 +45,11 @@ const App = () => {
     );
 };
 
-// Mount only if the target element exists
-const container = document.getElementById('my-react-app');
-if (container) {
-    const root = createRoot(container);
-    root.render(<App />);
-}
+document.addEventListener('DOMContentLoaded', () => {
+    // Mount only if the target element exists
+    const container = document.getElementById('my-react-app');
+    if (container) {
+        const root = createRoot(container);
+        root.render(<App />);
+    }
+});

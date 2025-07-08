@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import apiFetch from '@wordpress/api-fetch';
 
 const SetCoordinates = () => {
 
@@ -30,24 +31,23 @@ const SetCoordinates = () => {
 
     const runBatch = async () => {
       try {
-        const response = await fetch(`${window.dba_data.restUrl}` + `/update/coordinates`, {
+        const response = await apiFetch({
+          path: `${window.dba_data.restUrl}/update/coordinates`,
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-WP-Nonce': window.dba_data.nonce
-          },
-          body: JSON.stringify({ offset: currentOffset, limit: limit })
+          data: {
+            offset: currentOffset,
+            limit: limit
+          }
         });
-        const data = await response.json();
 
-        if (data.status == 'error') {
-          setShowError(data.message);
+        if (response.status == 'error') {
+          setShowError(response.message);
           setUpdating(false);
           return;
         }
 
-        const postsCount = data.posts?.length || 0;
-        const updatedCount = data.updated?.length || 0;
+        const postsCount = response.posts?.length || 0;
+        const updatedCount = response.updated?.length || 0;
         const curMissAdrs = postsCount - updatedCount;
 
         setLog(prev => [...prev, `Batch ${currentOffset / limit}: ${updatedCount}/${postsCount} updated.`]);

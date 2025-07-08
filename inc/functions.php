@@ -172,3 +172,28 @@ function format_csv_date_to_wp($csv_date)
 
     return null;
 }
+
+function dba_request()
+{
+    $request = new \WP_REST_Request('POST', '/');
+    $server  = new \WP_REST_Server();
+
+    // Populate query parameters from GET data.
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+    $request->set_query_params(wp_unslash($_GET));
+
+    // Populate body parameters from POST data.
+    // phpcs:ignore WordPress.Security.NonceVerification.Missing
+    $request->set_body_params(wp_unslash($_POST));
+
+    // Set file parameters.
+    $request->set_file_params($_FILES);
+
+    // Populate headers from server data.
+    $request->set_headers($server->get_headers(wp_unslash($_SERVER)));
+
+    // Set raw body data.
+    $request->set_body($server->get_raw_data());
+
+    return $request;
+}

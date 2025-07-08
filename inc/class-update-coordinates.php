@@ -34,24 +34,18 @@ if (! class_exists('DBA_Update_Coordinates')):
             register_rest_route('directorist_bulk_actions/v1', '/update/coordinates', [
                 'methods'  => 'POST',
                 'callback' => [$this, 'update_coordinates'],
-                'permission_callback' => '__return_true'
+                'permission_callback' => function () {
+                    return current_user_can('manage_options');
+                },
             ]);
         }
 
 
-        public function update_coordinates($request)
+        public function update_coordinates(\WP_REST_Request $request)
         {
 
             $offset = $request->get_param('offset') ? $request->get_param('offset') : 0;
             $limit = $request->get_param('limit') ? $request->get_param('limit') : 5;
-            $nonce = $request->get_header('x_wp_nonce') ? $request->get_header('x_wp_nonce') : '';
-
-            if (! wp_verify_nonce($nonce, 'wp_rest')) {
-                return new WP_REST_Response([
-                    'status'  => 'error',
-                    'message' => 'Invalid nonce',
-                ], 403);
-            }
 
             $api_key = get_directorist_option('map_api_key', '');
             if (empty($api_key)) {

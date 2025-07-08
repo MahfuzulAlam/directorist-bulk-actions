@@ -4,7 +4,7 @@
   "description": "**Directorist - Bulk Actions** is an extension for the popular [Directorist plugin](https://wordpress.org/plugins/directorist/) that allows users to perform bulk actions on their listings and taxonomies. This plugin is designed to streamline and simplify managing large numbers of listings by enabling bulk import-export of taxonomies, bulk deletion of listings and taxonomies, updating listing fields, and many more features.",
   "main": "webpack.config.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "wp-scripts start"
   },
   "repository": {
     "type": "git",
@@ -18,18 +18,13 @@
   },
   "homepage": "https://github.com/MahfuzulAlam/directorist-bulk-actions#readme",
   "dependencies": {
-    "axios": "^1.10.0",
+    "@wordpress/api-fetch": "^7.26.0",
     "file-saver": "^2.0.5",
     "papaparse": "^5.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.27.4",
-    "@babel/preset-env": "^7.27.2",
-    "@babel/preset-react": "^7.27.1",
-    "babel-loader": "^10.0.0",
-    "webpack": "^5.99.9",
-    "webpack-cli": "^6.0.1"
+    "@wordpress/scripts": "^30.19.0"
   }
 }

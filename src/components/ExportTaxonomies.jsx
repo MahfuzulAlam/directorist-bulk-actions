@@ -1,5 +1,6 @@
 import React from 'react';
 import { saveAs } from 'file-saver';
+import apiFetch from '@wordpress/api-fetch';
 
 /**
  * Component: ExportTaxonomies
@@ -16,24 +17,21 @@ const ExportTaxonomies = () => {
   const exportTaxonomies = async (taxonomy = 'category') => {
     try {
       // Send request to the backend REST API endpoint
-      const response = await fetch(`${window.dba_data.restUrl}/export/taxonomies`, {
+      const response = await apiFetch({
+        path: `${window.dba_data.restUrl}/export/taxonomies`,
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-WP-Nonce': window.dba_data.nonce,
-        },
-        body: JSON.stringify({ taxonomy })
+        data: {
+          taxonomy,
+        }
       });
 
-      // Parse the response JSON
-      const data = await response.json();
-      console.log(data);
+      console.log(response);
 
-      if (data.status !== 'success') {
+      if (response.status !== 'success') {
         throw new Error('Failed to fetch taxonomy terms');
       }
 
-      const categories = data.terms || [];
+      const categories = response.terms || [];
 
       // Define CSV headers
       const headers = [

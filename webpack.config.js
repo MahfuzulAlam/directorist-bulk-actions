@@ -1,22 +1,15 @@
+
 const path = require('path');
+const defaultConfig = require('@wordpress/scripts/config/webpack.config');
 
 module.exports = {
-    entry: './src/app.jsx',
-    output: {
-        filename: 'app.js',
-        path: path.resolve(__dirname, 'build'),
-    },
-    module: {
-        rules: [
-            {
-                test: /\.jsx?$/,
-                exclude: /node_modules/,
-                use: 'babel-loader',
-            }
-        ],
-    },
-    resolve: {
-        extensions: ['.js', '.jsx'],
-    },
-    mode: 'development',
+	...defaultConfig,
+	entry: {
+		'app': './src/app.jsx'
+	},
+	output: {
+		path: path.resolve( __dirname, './build/' ),
+		filename: '[name].js',
+		clean: true,
+	},
 };

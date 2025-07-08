@@ -34,15 +34,16 @@ if (! class_exists('DBA_Taxonomy_Import')):
             register_rest_route('directorist_bulk_actions/v1', '/import/taxonomies', [
                 'methods'             => 'POST',
                 'callback'            => [$this, 'import_taxonomies'],
-                'permission_callback' => '__return_true',
+                'permission_callback' => function () {
+                    return current_user_can('manage_options');
+                },
             ]);
         }
 
-        public function import_taxonomies($request)
+        public function import_taxonomies(\WP_REST_Request $request)
         {
-            $taxonomy_slug = $request->get_param('taxonomy') ? $request->get_param('taxonomy') : 'category';
-            $items = $request->get_param('items') ? $request->get_param('items') : [];
-            $nonce         = $request->get_header('x_wp_nonce') ? $request->get_header('x_wp_nonce') : '';
+            $taxonomy_slug = $request->get_param('taxonomy');
+            $items     = $request->get_param('items');
 
             if (empty($taxonomy_slug) || !in_array($taxonomy_slug, ['category', 'location'])) {
                 return new WP_REST_Response([
@@ -60,13 +61,6 @@ if (! class_exists('DBA_Taxonomy_Import')):
                 default:
                     $taxonomy = ATBDP_CATEGORY;
                     break;
-            }
-
-            if (! wp_verify_nonce($nonce, 'wp_rest')) {
-                return new WP_REST_Response([
-                    'status'  => 'error',
-                    'message' => 'Invalid nonce',
-                ], 403);
             }
 
             $response = [];
@@ -126,7 +120,7 @@ if (! class_exists('DBA_Taxonomy_Import')):
                 }
             }
 
-            return new WP_REST_Response($response, 200);
+            return new WP_REST_Response(['results' => $response], 200);
         }
 
         public function get_directory_types($term_dir_type)

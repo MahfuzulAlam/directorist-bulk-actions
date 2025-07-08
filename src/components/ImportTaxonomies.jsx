@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
-import axios from 'axios';
+import apiFetch from '@wordpress/api-fetch';
 
 const ImportTaxonomies = () => {
   const [loading, setLoading] = useState(false);
@@ -49,17 +49,16 @@ const ImportTaxonomies = () => {
       const batch = rows.slice(i, i + batchSize);
 
       try {
-        const response = await axios.post(`${window.dba_data.restUrl}/import/taxonomies`, {
-          taxonomy,
-          items: batch,
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-WP-Nonce': window.dba_data?.nonce || '',
-          },
+        const response = await apiFetch({
+          path: `${window.dba_data.restUrl}/import/taxonomies`,
+          method: 'POST',
+          data: {
+            taxonomy,
+            items: batch
+          }
         });
 
-        response.data?.forEach((result, index) => {
+        response.results?.forEach((result, index) => {
           const row = batch[index];
           if (result.status === 'updated') {
             updated++;

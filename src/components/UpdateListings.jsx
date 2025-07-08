@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
-import axios from 'axios';
+import apiFetch from '@wordpress/api-fetch';
 
 const UpdateListings = () => {
     const [loading, setLoading] = useState(false);
@@ -50,17 +50,16 @@ const UpdateListings = () => {
             const batch = rows.slice(i, i + batchSize);
 
             try {
-                const response = await axios.post(`${window.dba_data.restUrl}/update/listings`, {
-                    directory,
-                    items: batch,
-                }, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-WP-Nonce': window.dba_data?.nonce || '',
-                    },
+                const response = await apiFetch({
+                    path: `${window.dba_data.restUrl}/update/listings`,
+                    method: 'POST',
+                    data: {
+                        directory,
+                        items: batch
+                    }
                 });
-                console.log(response);
-                response.data.results?.forEach((result, index) => {
+
+                response.results?.forEach((result, index) => {
                     const row = batch[index];
                     if (result.status === 'success') {
                         updated++;
