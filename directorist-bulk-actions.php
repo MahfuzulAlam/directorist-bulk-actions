@@ -4,7 +4,7 @@
  * Plugin Name: Directorist - Bulk Actions
  * Plugin URI: https://github.com/MahfuzulAlam/directorist-bulk-actions
  * Description: A plugin that provides bulk actions for the Directorist plugin, enabling users to perform operations such as bulk import/export of taxonomies, deleting listings, deleting taxonomies, updating listing fields, and more.
- * Version: 2.0.1
+ * Version: 2.0.2
  * Author: Mahfuz
  * Author URI: https://github.com/MahfuzulAlam/
  * License: GPL-2.0+
@@ -31,7 +31,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         /**
          * Plugin Version
          */
-        private $version = '2.0.1';
+        private $version = '2.0.2';
 
         /**
          * Instance
@@ -108,11 +108,11 @@ if (!class_exists('Directorist_Bulk_Actions')) {
             // Replace 'your-plugin-name' with the actual name of your plugin's folder.
             //wp_enqueue_script( 'dba-admin-script', DIRECTORIST_BULK_ACTIONS_URI . 'assets/js/admin.js', array( 'jquery' ), '1.0', true );
 
-            $assets  = include DIRECTORIST_BULK_ACTIONS_DIR . 'build/app.asset.php';
+            $assets  = include DIRECTORIST_BULK_ACTIONS_DIR . 'assets/build/app.asset.php';
 
             wp_enqueue_script(
                 'dba-admin-script',
-                DIRECTORIST_BULK_ACTIONS_URI . 'build/app.js',
+                DIRECTORIST_BULK_ACTIONS_URI . 'assets/build/app.js',
                 $assets['dependencies'], // ensures React from WP core is loaded
                 $assets['version'],
                 true
