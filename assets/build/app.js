@@ -331,6 +331,141 @@ const ImportTaxonomies = () => {
 
 /***/ }),
 
+/***/ "./src/components/RunListingUpdate.jsx":
+/*!*********************************************!*\
+  !*** ./src/components/RunListingUpdate.jsx ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/api-fetch */ "@wordpress/api-fetch");
+/* harmony import */ var _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+const RunListingUpdate = () => {
+  const [offset, setOffset] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const [totalUpdated, setTotalUpdated] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const [missingAddress, setMissingAddress] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const [updating, setUpdating] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [progress, setProgress] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const [completed, setCompleted] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [showError, setShowError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [log, setLog] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const limit = 5;
+  const progressNumber = 5 / dba_data.totalListings * 100;
+  const updateCoordinates = () => {
+    setUpdating(true);
+    setCompleted(false);
+    setTotalUpdated(0);
+    setMissingAddress(0);
+    setOffset(0);
+    setProgress(0);
+    setLog([]);
+    setShowError('');
+    let currentOffset = 0;
+    let allUpdated = 0;
+    const runBatch = async () => {
+      try {
+        const response = await _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default()({
+          path: `${window.dba_data.restUrl}/run/update`,
+          method: 'POST',
+          data: {
+            offset: currentOffset,
+            limit: limit
+          }
+        });
+        console.log(response);
+        if (response.status == 'error') {
+          setShowError(response.message);
+          setUpdating(false);
+          return;
+        }
+        const postsCount = response.posts?.length || 0;
+        const updatedCount = response.updated?.length || 0;
+        const curMissAdrs = postsCount - updatedCount;
+        setLog(prev => [...prev, `Batch ${currentOffset / limit}: ${updatedCount}/${postsCount} updated.`]);
+        if (postsCount === 0) {
+          setCompleted(true);
+          setUpdating(false);
+          return;
+        }
+        allUpdated += updatedCount;
+        setTotalUpdated(allUpdated);
+        currentOffset += limit;
+        setOffset(prev => prev + limit);
+        setProgress(prev => prev + progressNumber);
+        setMissingAddress(prev => prev + curMissAdrs);
+
+        // Continue to next batch
+        runBatch();
+      } catch (error) {
+        console.error('API Error:', error);
+        setLog(prev => [...prev, `Error at offset ${currentOffset}`]);
+        setUpdating(false);
+      }
+    };
+    runBatch();
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+    className: "coordinators-wrapper",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h2", {
+      children: "Update Listings Infomation"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("p", {
+      className: "note",
+      children: ["You can update listing information by using this method. Please use the following action hook to update the listings.", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {}), "\"directorist_bulk_actions_run_update_loop\"", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("br", {}), "only parameter is $listing_id"]
+    }), showError && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+      className: "error",
+      children: showError
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+      className: "update-coordinates",
+      onClick: updateCoordinates,
+      disabled: updating,
+      children: updating ? 'Updating...' : 'Run Update'
+    }), progress > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      className: "progress-bar",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+        className: "progress-bar-fill",
+        style: {
+          width: `${progress}%`
+        }
+      })
+    }), totalUpdated > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("p", {
+      className: "coordinator-status",
+      children: ["Total Updated: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("strong", {
+        children: totalUpdated
+      })]
+    }), missingAddress > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("p", {
+      className: "coordinator-status",
+      children: ["Total Missing: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("strong", {
+        children: missingAddress
+      })]
+    }), completed && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+      className: "coordinator-status",
+      style: {
+        color: 'green'
+      },
+      children: "\u2705 All listings processed!"
+    }), log.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      className: "coordinator-log",
+      children: [...log].reverse().map((entry, i) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        children: ["- ", entry]
+      }, i))
+    })]
+  });
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (RunListingUpdate);
+
+/***/ }),
+
 /***/ "./src/components/SetCoordinates.jsx":
 /*!*******************************************!*\
   !*** ./src/components/SetCoordinates.jsx ***!
@@ -481,6 +616,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _updateListings__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./updateListings */ "./src/components/updateListings.jsx");
 /* harmony import */ var _DeleteListings__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./DeleteListings */ "./src/components/DeleteListings.jsx");
 /* harmony import */ var _SetCoordinates__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./SetCoordinates */ "./src/components/SetCoordinates.jsx");
+/* harmony import */ var _RunListingUpdate__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./RunListingUpdate */ "./src/components/RunListingUpdate.jsx");
+
 
 
 
@@ -491,7 +628,8 @@ __webpack_require__.r(__webpack_exports__);
   ImportTaxonomies: _ImportTaxonomies__WEBPACK_IMPORTED_MODULE_1__["default"],
   UpdateListings: _updateListings__WEBPACK_IMPORTED_MODULE_2__["default"],
   DeleteListings: _DeleteListings__WEBPACK_IMPORTED_MODULE_3__["default"],
-  SetCoordinates: _SetCoordinates__WEBPACK_IMPORTED_MODULE_4__["default"]
+  SetCoordinates: _SetCoordinates__WEBPACK_IMPORTED_MODULE_4__["default"],
+  RunListingUpdate: _RunListingUpdate__WEBPACK_IMPORTED_MODULE_5__["default"]
 });
 
 /***/ }),
@@ -802,7 +940,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const App = () => {
-  const [activeTab, setActiveTab] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('update_listings');
+  const [activeTab, setActiveTab] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('run_update');
   const tabs = [{
     key: 'export_taxonomies',
     label: 'Export Taxonomies'
@@ -818,6 +956,9 @@ const App = () => {
   }, {
     key: 'set_coordinates',
     label: 'Set Coordinates'
+  }, {
+    key: 'run_update',
+    label: 'Run Update'
   }];
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
     className: "wrap",
@@ -847,6 +988,8 @@ const App = () => {
         }), activeTab === 'delete_listings' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_components__WEBPACK_IMPORTED_MODULE_1__["default"].DeleteListings, {
           isActive: true
         }), activeTab === 'update_listings' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_components__WEBPACK_IMPORTED_MODULE_1__["default"].UpdateListings, {
+          isActive: true
+        }), activeTab === 'run_update' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_components__WEBPACK_IMPORTED_MODULE_1__["default"].RunListingUpdate, {
           isActive: true
         })]
       })]

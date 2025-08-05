@@ -2,7 +2,7 @@ import { useState, createRoot } from '@wordpress/element';
 import Tabs from './components';
 
 const App = () => {
-    const [activeTab, setActiveTab] = useState('update_listings');
+    const [activeTab, setActiveTab] = useState('run_update');
 
     const tabs = [
         { key: 'export_taxonomies', label: 'Export Taxonomies' },
@@ -10,6 +10,7 @@ const App = () => {
         { key: 'update_listings', label: 'Update Listings' },
         { key: 'delete_listings', label: 'Delete Listings' },
         { key: 'set_coordinates', label: 'Set Coordinates' },
+        { key: 'run_update', label: 'Run Update' },
     ];
 
     return (
@@ -39,6 +40,7 @@ const App = () => {
                     {activeTab === 'export_taxonomies' && <Tabs.ExportTaxonomies isActive />}
                     {activeTab === 'delete_listings' && <Tabs.DeleteListings isActive />}
                     {activeTab === 'update_listings' && <Tabs.UpdateListings isActive />}
+                    {activeTab === 'run_update' && <Tabs.RunListingUpdate isActive />}
                 </div>
             </div>
         </div>

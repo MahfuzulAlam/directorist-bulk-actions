@@ -80,7 +80,7 @@ if (!class_exists('DBA_Update_Listings')) :
                     'meta_input'   => $meta_input,
                 ];
 
-                file_put_contents(__DIR__ . '/data.json', json_encode($post_data));
+                //file_put_contents(__DIR__ . '/data.json', json_encode($post_data));
 
                 $result = wp_update_post($post_data, true);
 

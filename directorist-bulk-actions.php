@@ -81,6 +81,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-taxonomy-export.php');
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-taxonomy-import.php');
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-update-listings.php');
+            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-run-update.php');
         }
 
         /**
