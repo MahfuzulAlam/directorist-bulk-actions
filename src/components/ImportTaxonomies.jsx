@@ -11,6 +11,7 @@ const ImportTaxonomies = () => {
   const [totalFailed, setTotalFailed] = useState(0);
   const [progress, setProgress] = useState(0);
   const [log, setLog] = useState([]);
+  const [updateOnMatch, setUpdateOnMatch] = useState(false);
 
   const handleCSVChange = (e) => {
     try {
@@ -54,9 +55,12 @@ const ImportTaxonomies = () => {
           method: 'POST',
           data: {
             taxonomy,
+            allow_update: updateOnMatch,
             items: batch
           }
         });
+
+        console.log( response );
 
         response.results?.forEach((result, index) => {
           const row = batch[index];
@@ -68,6 +72,10 @@ const ImportTaxonomies = () => {
             added++;
             setTotalAdded(added);
             setLog(prev => [...prev, `🆕 Added: ${row.name}`]);
+          } else if (result.status === 'exists') {
+            failed++;
+            setTotalFailed(failed);
+            setLog(prev => [...prev, `🆕 Exists: ${row.name}`]);
           } else {
             failed++;
             setTotalFailed(failed);
@@ -77,6 +85,7 @@ const ImportTaxonomies = () => {
 
       } catch (err) {
         batch.forEach(row => {
+          console.log(err);
           failed++;
           setLog(prev => [...prev, `❌ Failed: ${row.name}`]);
         });
@@ -96,7 +105,19 @@ const ImportTaxonomies = () => {
       <div className="import-card">
         <h3>Import Taxonomy</h3>
         <p>Select the taxonomy you want to import and upload the CSV file</p>
-        <p className="note">Terms will be updated if they match either the term ID or the term slug.</p>
+
+        <p>
+          <label className="updateMatchLabel">
+            <input
+              type="checkbox"
+              checked={updateOnMatch}
+              onChange={(e) => setUpdateOnMatch(e.target.checked)}
+              className="updateMatchCheckbox"
+            />
+            Update terms if a match is found by term ID or term slug
+          </label>
+        </p>
+        { updateOnMatch && <p className="note">Terms will be updated if they match either the term ID or the term slug.</p>}
 
         <select
           value={taxonomy}

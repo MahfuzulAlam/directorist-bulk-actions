@@ -43,7 +43,8 @@ if (! class_exists('DBA_Taxonomy_Import')):
         public function import_taxonomies(\WP_REST_Request $request)
         {
             $taxonomy_slug = $request->get_param('taxonomy');
-            $items     = $request->get_param('items');
+            $items = $request->get_param('items');
+            $allow_update = $request->get_param('allow_update');
 
             if (empty($taxonomy_slug) || !in_array($taxonomy_slug, ['category', 'location'])) {
                 return new WP_REST_Response([
@@ -66,15 +67,17 @@ if (! class_exists('DBA_Taxonomy_Import')):
             $response = [];
 
             foreach ($items as $item) {
+                $term_id = sanitize_text_field($item['id'] ?? '');
                 $name = sanitize_text_field($item['name'] ?? '');
                 $slug = sanitize_title($item['slug'] ?? '');
                 $description = sanitize_textarea_field($item['description'] ?? '');
                 $parent = isset($item['parent']) && !empty($item['parent']) ? $item['parent'] : '';
                 $image = isset($item['image']) && !empty($item['image']) ? dba_upload_image_from_url($item['image']) : '';
-                //$image = !empty($image) && ! is_wp_error($image) ? $image : '';
+                $directory_types = isset($item['directory_type']) && !empty($item['directory_type']) ? $this->get_directory_types($item['directory_type']) : '';
+
                 $meta = [
                     'category_icon'    => $item['category_icon'] ?? '',
-                    '_directory_type'  => isset($item['directory_type']) && !empty($item['directory_type']) ? $this->get_directory_types($item['directory_type']) : '',
+                    '_directory_type'  => $directory_types,
                     'image'            => $image,
                 ];
 
@@ -84,39 +87,50 @@ if (! class_exists('DBA_Taxonomy_Import')):
                 }
 
                 // Check if term already exists
-                $existing_id = get_term_by('id', $slug, $taxonomy);
-                $existing_term = get_term_by('slug', $slug, $taxonomy);
-                $parent_id = $this->get_parent_term_id($parent, $taxonomy);
+                $existing_id = 0;
+                $check_id = get_term_by('id', $term_id, $taxonomy);
+                if( $check_id ) $existing_id = $check_id->term_id;
+                $check_term = get_term_by('slug', $slug, $taxonomy);
+                if( $check_term ) $existing_id = $check_term->term_id;
 
-                if ($existing_id || $existing_term) {
-                    wp_update_term($existing_term->term_id, $taxonomy, [
-                        'name'        => $name,
-                        'description' => $description,
-                        'parent'      => $parent_id,
-                        'slug'        => $slug,
-                    ]);
+                // Get parents
+                $parent_id = $this->get_parent_term_id($parent, $taxonomy, $directory_types);
 
-                    foreach ($meta as $key => $value) {
-                        update_term_meta($existing_term->term_id, $key, $value);
-                    }
+                // Args
+                $args = [
+                    'slug'        => $slug,
+                    'description' => $description,
+                    'parent'      => $parent_id,
+                ];
 
-                    $response[] = ['status' => 'updated'];
-                } else {
-                    $result = wp_insert_term($name, $taxonomy, [
-                        'slug'        => $slug,
-                        'description' => $description,
-                        'parent'      => $parent_id,
-                    ]);
+                if ( $existing_id ) {
+                    if( $allow_update ){
+                        $args['name'] = $name;
+                        wp_update_term($existing_id, $taxonomy, $args);
 
-                    if (is_wp_error($result)) {
-                        $response[] = ['status' => 'failed', 'message' => $result->get_error_message()];
-                    } else {
-                        $term_id = $result['term_id'];
                         foreach ($meta as $key => $value) {
-                            update_term_meta($term_id, $key, $value);
+                            update_term_meta($existing_id, $key, $value);
                         }
-                        $response[] = ['status' => 'added'];
+
+                        $response[] = ['status' => 'updated'];
+                    }else{
+                        $response[] = ['status' => 'exists', 'message' => 'Term already exists with ID: ' . $existing_id];
                     }
+                } else {
+
+                    $result = $this->insert_term( $name, $taxonomy, $args, $meta,  );
+
+                    if ( is_wp_error( $result ) ) {
+                        $response[] = [
+                            'status'  => 'failed',
+                            'message' => $result->get_error_message(),
+                        ];
+                    } else {
+                        $response[] = [
+                            'status' => 'added',
+                        ];
+                    }
+                    
                 }
             }
 
@@ -177,13 +191,40 @@ if (! class_exists('DBA_Taxonomy_Import')):
             }
         }
 
-        public function get_parent_term_id($parent, $taxonomy)
+        public function insert_term( $name, $taxonomy, $args = [], $meta = [], $type = '' ){
+            $result = wp_insert_term($name, $taxonomy, $args);
+
+            if (! is_wp_error($result)) {
+                $term_id = $result['term_id'];
+                foreach ($meta as $key => $value) {
+                    update_term_meta($term_id, $key, $value);
+                }
+                return $term_id;
+            }
+
+            return false;
+        }
+
+        public function get_parent_term_id($parent, $taxonomy, $directory_types)
         {
             if (!empty($parent)) {
                 $parent_term = get_term_by('name', $parent, $taxonomy);
                 //file_put_contents(__DIR__ . '/items.json', json_encode([$parent_term, $taxonomy]));
                 if ($parent_term && !is_wp_error($parent_term)) {
                     return $parent_term->term_id;
+                }else{
+                    $parent_term_id = $this->insert_term( 
+                        $parent, 
+                        $taxonomy, 
+                        [
+                            'parent' => 0
+                        ], 
+                        [
+                            '_directory_type' => $directory_types
+                        ], 
+                        'parent' 
+                    );
+                    if($parent_term_id) return $parent_term_id;
                 }
             }
             return '';

@@ -16087,6 +16087,7 @@ const ImportTaxonomies = () => {
   const [totalFailed, setTotalFailed] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
   const [progress, setProgress] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
   const [log, setLog] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [updateOnMatch, setUpdateOnMatch] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const handleCSVChange = e => {
     try {
       const csvfile = e.target.files[0];
@@ -16125,9 +16126,11 @@ const ImportTaxonomies = () => {
           method: 'POST',
           data: {
             taxonomy,
+            allow_update: updateOnMatch,
             items: batch
           }
         });
+        console.log(response);
         response.results?.forEach((result, index) => {
           const row = batch[index];
           if (result.status === 'updated') {
@@ -16138,6 +16141,10 @@ const ImportTaxonomies = () => {
             added++;
             setTotalAdded(added);
             setLog(prev => [...prev, `🆕 Added: ${row.name}`]);
+          } else if (result.status === 'exists') {
+            failed++;
+            setTotalFailed(failed);
+            setLog(prev => [...prev, `🆕 Exists: ${row.name}`]);
           } else {
             failed++;
             setTotalFailed(failed);
@@ -16146,6 +16153,7 @@ const ImportTaxonomies = () => {
         });
       } catch (err) {
         batch.forEach(row => {
+          console.log(err);
           failed++;
           setLog(prev => [...prev, `❌ Failed: ${row.name}`]);
         });
@@ -16166,6 +16174,16 @@ const ImportTaxonomies = () => {
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("p", {
         children: "Select the taxonomy you want to import and upload the CSV file"
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("p", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("label", {
+          className: "updateMatchLabel",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "checkbox",
+            checked: updateOnMatch,
+            onChange: e => setUpdateOnMatch(e.target.checked),
+            className: "updateMatchCheckbox"
+          }), "Update terms if a match is found by term ID or term slug"]
+        })
+      }), updateOnMatch && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("p", {
         className: "note",
         children: "Terms will be updated if they match either the term ID or the term slug."
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("select", {
