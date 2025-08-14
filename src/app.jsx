@@ -2,7 +2,7 @@ import { useState, createRoot } from '@wordpress/element';
 import Tabs from './components';
 
 const App = () => {
-    const [activeTab, setActiveTab] = useState('run_update');
+    const [activeTab, setActiveTab] = useState('delete_listings');
 
     const tabs = [
         { key: 'export_taxonomies', label: 'Export Taxonomies' },

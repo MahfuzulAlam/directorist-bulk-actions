@@ -21,8 +21,11 @@
     "@wordpress/api-fetch": "^7.26.0",
     "file-saver": "^2.0.5",
     "papaparse": "^5.5.3",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-select": "^5.10.2",
+    "sweetalert2": "^11.22.3",
+    "sweetalert2-react-content": "^5.1.0"
   },
   "devDependencies": {
     "@wordpress/scripts": "^30.19.0"

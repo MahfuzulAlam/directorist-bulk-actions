@@ -82,6 +82,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-taxonomy-import.php');
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-update-listings.php');
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-run-update.php');
+            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-delete-listings.php');
         }
 
         /**
@@ -122,6 +123,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
             wp_localize_script('dba-admin-script', 'dba_data', [
                 'totalListings' => $this->total_listings(),
                 'directoryTypes' => $this->get_directory_types(),
+                'allDirectoryTypes' => $this->get_directory_types('all'),
                 'restUrl'       => 'directorist_bulk_actions/v1',
             ]);
         }
@@ -195,13 +197,17 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         /**
          * Get Directory Types
          */
-        public function get_directory_types()
+        public function get_directory_types( $info = '' )
         {
             $directory_types = [];
             $directories =  directorist_get_directories();
             if (count($directories) > 0) {
                 foreach ($directories as $directory) {
-                    $directory_types[$directory->term_id] = $directory->name;
+                    if( $info == 'all' ){
+                        $directory_types[] = $directory;
+                    }else{
+                        $directory_types[$directory->term_id] = $directory->name;
+                    }
                 }
             }
             return $directory_types;
