@@ -4,7 +4,7 @@
  * Plugin Name: Directorist - Bulk Actions
  * Plugin URI: https://github.com/MahfuzulAlam/directorist-bulk-actions
  * Description: A plugin that provides bulk actions for the Directorist plugin, enabling users to perform operations such as bulk import/export of taxonomies, deleting listings, deleting taxonomies, updating listing fields, and more.
- * Version: 2.0.2
+ * Version: 2.0.3
  * Author: Mahfuz
  * Author URI: https://github.com/MahfuzulAlam/
  * License: GPL-2.0+
@@ -31,7 +31,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         /**
          * Plugin Version
          */
-        private $version = '2.0.2';
+        private $version = '2.0.3';
 
         /**
          * Instance
@@ -107,9 +107,6 @@ if (!class_exists('Directorist_Bulk_Actions')) {
          */
         public function enqueue_admin_scripts()
         {
-            // Replace 'your-plugin-name' with the actual name of your plugin's folder.
-            //wp_enqueue_script( 'dba-admin-script', DIRECTORIST_BULK_ACTIONS_URI . 'assets/js/admin.js', array( 'jquery' ), '1.0', true );
-
             $assets  = include DIRECTORIST_BULK_ACTIONS_DIR . 'assets/build/app.asset.php';
 
             wp_enqueue_script(
@@ -133,8 +130,10 @@ if (!class_exists('Directorist_Bulk_Actions')) {
          */
         public function enqueue_admin_styles()
         {
-            // Replace 'your-plugin-name' with the actual name of your plugin's folder.
-            wp_enqueue_style('dba-admin-style', DIRECTORIST_BULK_ACTIONS_URI . 'assets/css/admin.css', array(), $this->version);
+            $css_file = 'assets/build/style-app.css';
+            $css_path = DIRECTORIST_BULK_ACTIONS_DIR . $css_file;
+            $css_ver  = file_exists( $css_path ) ? filemtime( $css_path ) : $this->version;
+            wp_enqueue_style('dba-admin-style', DIRECTORIST_BULK_ACTIONS_URI . $css_file, [], $css_ver);
         }
 
         /**

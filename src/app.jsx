@@ -1,6 +1,8 @@
 import { useState, createRoot } from '@wordpress/element';
 import Tabs from './components';
 
+import './style.css';
+
 const App = () => {
     const [activeTab, setActiveTab] = useState('delete_listings');
 
@@ -49,7 +51,7 @@ const App = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Mount only if the target element exists
-    const container = document.getElementById('my-react-app');
+    const container = document.getElementById('directorist-bulk-actions-admin');
     if (container) {
         const root = createRoot(container);
         root.render(<App />);

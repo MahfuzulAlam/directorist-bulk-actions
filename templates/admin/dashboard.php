@@ -6,4 +6,4 @@
 
 ?>
 
-<div id="my-react-app"></div>
+<div id="directorist-bulk-actions-admin"></div>

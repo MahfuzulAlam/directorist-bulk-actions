@@ -60,8 +60,8 @@ if (! class_exists('DBA_Delete_Listings')):
             file_put_contents( __DIR__ . '/log.json', json_encode( [$metas['deleteType'], $media] ) );
 
             $count = 0;
-            $updated = [];
-            $address_missing = 0;
+            $deleted = [];
+            $missing = 0;
 
             $args = [
                 'post_type'   => ATBDP_POST_TYPE,
@@ -139,23 +139,21 @@ if (! class_exists('DBA_Delete_Listings')):
                     //if( $type == 'trash' ) $is_deleted = $this->trash_listing($post);
                     //if( $type == 'permanent' ) $is_deleted = $this->delete_listing_permanently($post);
                     
-                    if ($is_deleted) $updated[] = $post;
+                    if ($is_deleted) { $deleted[] = $post; } else { $missing++; }
 
                     //Counter
                     $count++;
                 }
 
-                //$url = directorist_removeUrlParameters( atbdp_get_current_url() );
-
-                //e_var_dump( [ $offset, $number ] );
                 $offset = $offset + $count;
 
                 return rest_ensure_response([
-                    'message' => 'Coordinates Updated Successfully!',
+                    'message' => 'Listings Deleted Successfully!',
                     'status'  => 'success',
                     'offset' => $offset,
                     'posts' => $posts,
-                    'updated'   => $args,
+                    'deleted'   => $deleted,
+                    'missing' => $missing,
                 ]);
             } else {
                 return rest_ensure_response([

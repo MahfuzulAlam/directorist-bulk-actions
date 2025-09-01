@@ -38,14 +38,14 @@ const DeleteListings = () => {
 
   useEffect(() => {
     apiFetch({ path: '/directorist/v1/listings/categories?hide_empty=true' })
-      .then((data) => setCategoryOptions( transformOptions(data)))
+      .then((data) => setCategoryOptions(transformOptions(data)))
       .catch((error) => console.error('Error fetching categories:', error));
-    setDirectoryOptions( transformOptions( window.dba_data.allDirectoryTypes ) );
+    setDirectoryOptions(transformOptions(window.dba_data.allDirectoryTypes));
   }, []);
 
   function transformOptions(data) {
     return data.map(item => ({
-      label: decodeHtmlEntities( item.name + " - " + item.count ),
+      label: decodeHtmlEntities(item.name + " - " + item.count),
       value: item.slug,
     }));
   }
@@ -115,17 +115,17 @@ const DeleteListings = () => {
           return;
         }
 
-        if( response.status == 'completed'){
+        if (response.status == 'completed') {
           setCompleted(true);
           setUpdating(false);
           return;
         }
 
         const postsCount = response.posts?.length || 0;
-        const updatedCount = response.updated?.length || 0;
-        const curMissAdrs = postsCount - updatedCount;
+        const deletedCount = response.deleted?.length || 0;
+        const curMissAdrs = postsCount - deletedCount;
 
-        setLog(prev => [...prev, `Batch ${currentOffset / limit}: ${updatedCount}/${postsCount} updated.`]);
+        setLog(prev => [...prev, `Batch ${currentOffset / limit}: ${deletedCount}/${postsCount} deleted.`]);
 
         if (postsCount === 0) {
           setCompleted(true);
@@ -133,7 +133,7 @@ const DeleteListings = () => {
           return;
         }
 
-        allUpdated += updatedCount;
+        allUpdated += deletedCount;
         setTotalUpdated(allUpdated);
         currentOffset += limit;
         setOffset((prev) => prev + limit);
@@ -154,7 +154,7 @@ const DeleteListings = () => {
   }
 
   return (
-    <div className="coordinators-wrapper">
+    <div className="coordinators-wrapper all-import-wrapper">
       <h2>Delete Listings</h2>
       <p className="note">Please select the options to delete the listings in your website.</p>
       {showError && (
@@ -191,12 +191,12 @@ const DeleteListings = () => {
 
       {totalUpdated > 0 && (
         <p className="coordinator-status">
-          Total Updated: <strong>{totalUpdated}</strong>
+          Total Deleted: <strong>{totalUpdated}</strong>
         </p>
       )}
       {missingAddress > 0 && (
         <p className="coordinator-status">
-          Total Missing Address: <strong>{missingAddress}</strong>
+          Total Failed: <strong>{missingAddress}</strong>
         </p>
       )}
       {completed && <p className="coordinator-status" style={{ color: 'green' }}>✅ All listings processed!</p>}

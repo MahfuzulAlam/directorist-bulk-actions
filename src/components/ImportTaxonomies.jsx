@@ -102,7 +102,7 @@ const ImportTaxonomies = () => {
 
   return (
     <div className="csv-import-container">
-      <div className="import-card">
+      <div className="import-card all-import-wrapper">
         <h3>Import Taxonomy</h3>
         <p>Select the taxonomy you want to import and upload the CSV file</p>
 

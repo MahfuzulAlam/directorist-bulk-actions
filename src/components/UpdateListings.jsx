@@ -91,8 +91,9 @@ const UpdateListings = () => {
 
     return (
         <div className="csv-import-container">
-            <div className="import-card">
-                <h3>Update Listings</h3>
+            <div className="all-import-wrapper import-card">
+
+                <h3>Update Listings Here</h3>
                 <p>Select the directory type you want to upload the listings with CSV file</p>
                 <p className="note">Listings will be updated if they match either the listings ID only.</p>
 

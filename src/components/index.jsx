@@ -1,6 +1,6 @@
 import ExportTaxonomies from "./ExportTaxonomies";
 import ImportTaxonomies from "./ImportTaxonomies";
-import UpdateListings from "./updateListings";
+import UpdateListings from "./UpdateListings";
 import DeleteListings from "./DeleteListings";
 import SetCoordinates from "./SetCoordinates";
 import RunListingUpdate from "./RunListingUpdate";

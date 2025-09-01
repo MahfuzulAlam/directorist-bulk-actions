@@ -79,7 +79,7 @@ const SetCoordinates = () => {
   }
 
   return (
-    <div className="coordinators-wrapper">
+    <div className="coordinators-wrapper all-import-wrapper">
       <h2>Update Listing Coordinates</h2>
       <p className="note">Coordinates will not be updated if the address field is empty or the Google Maps API is not configured correctly in the Directorist Settings.</p>
       {showError && (

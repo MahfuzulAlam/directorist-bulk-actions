@@ -59,7 +59,7 @@ const ExportTaxonomies = () => {
   };
 
   return (
-    <div className='export-taxonomy-wrapper'>
+    <div className='export-taxonomy-wrapper all-import-wrapper'>
       <h3>Export Taxonomies</h3>
       <p className="note">Please click the button below to export the CSV file for the selected taxonomy.</p>
       <button onClick={() => exportTaxonomies('category')}>Export Categories</button>
