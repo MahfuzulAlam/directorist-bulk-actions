@@ -4,12 +4,12 @@ import Tabs from './components';
 import './style.css';
 
 const App = () => {
-    const [activeTab, setActiveTab] = useState('delete_listings');
+    const [activeTab, setActiveTab] = useState('update_listings');
 
     const tabs = [
+        { key: 'update_listings', label: 'Update Listings' },
         { key: 'export_taxonomies', label: 'Export Taxonomies' },
         { key: 'import_taxonomies', label: 'Import Taxonomies' },
-        { key: 'update_listings', label: 'Update Listings' },
         { key: 'delete_listings', label: 'Delete Listings' },
         { key: 'set_coordinates', label: 'Set Coordinates' },
         { key: 'run_update', label: 'Run Update' },

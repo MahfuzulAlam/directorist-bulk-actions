@@ -90,6 +90,7 @@
     font-size: 13px;
     line-height: 1.6;
     margin-top: var(--wpc-gap-l);
+    margin-bottom: var(--wpc-gap-l);
     border-left: 4px solid currentColor;
     background: #fff;
 }
@@ -158,11 +159,6 @@
         text-align: left;
     }
 
-    .all-import-wrapper h2 {
-        font-size: 16px;
-        margin-bottom: 10px;
-    }
-
     .coordinator-log {
         max-height: 220px;
         /* smaller log window on mobile */
@@ -184,6 +180,7 @@
     /* better readability in admin */
 }
 
+.all-import-wrapper h3,
 .import-card h3,
 .export-taxonomy-wrapper h3 {
     font-size: 18px;
@@ -335,6 +332,7 @@
 .delete-media-options,
 .bulk-delete-metas,
 .category-select-field,
+.status-select-field,
 .meta-select {
     margin: 16px 0;
     font-family: inherit;
@@ -343,14 +341,16 @@
 .bulk-delete-type .label,
 .delete-media-options .label,
 .bulk-delete-metas .label,
-.category-select-field .label {
+.category-select-field .label,
+.status-select-field .label {
     font-weight: 600;
     margin-bottom: 6px;
     display: block;
     color: var(--wpc-text);
 }
 
-.category-select-field .help-text {
+.category-select-field .help-text,
+.status-select-field .help-text {
     margin-top: 2px;
     font-size: 12px;
     color: var(--wpc-text-muted);

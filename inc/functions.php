@@ -197,3 +197,51 @@ function dba_request()
 
     return $request;
 }
+
+
+/**
+ * User Query Args
+ */
+add_filter('directorist_rest_user_query', function ($args, $request) {
+    if ($request->get_param('custom') && $request->get_param('custom') == 'bulk_action') {
+        $args['number'] = -1;
+        $args['include'] = get_users_with_at_biz_dir_posts();
+        unset($args['has_published_posts']);
+    }
+    return $args;
+}, 10, 2);
+
+/**
+ * Get all users who have posts in custom post type `at_biz_dir`.
+ *
+ * @return array List of WP_User objects.
+ */
+if (! function_exists('get_users_with_at_biz_dir_posts')) {
+
+    function get_users_with_at_biz_dir_posts()
+    {
+        global $wpdb;
+
+        $results = $wpdb->get_results(
+            $wpdb->prepare(
+                "
+            SELECT DISTINCT u.ID
+            FROM $wpdb->users u
+            INNER JOIN $wpdb->posts p ON u.ID = p.post_author
+            WHERE p.post_type = %s
+            ",
+                'at_biz_dir'
+            )
+        );
+
+        if (empty($results)) {
+            return [];
+        }
+
+        // Extract IDs
+        $user_ids = wp_list_pluck($results, 'ID');
+
+        // Load full user objects
+        return $user_ids;
+    }
+}

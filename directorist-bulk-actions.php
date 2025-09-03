@@ -120,6 +120,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
             wp_localize_script('dba-admin-script', 'dba_data', [
                 'totalListings' => $this->total_listings(),
                 'directoryTypes' => $this->get_directory_types(),
+                'statuses' => $this->get_statuses(),
                 'allDirectoryTypes' => $this->get_directory_types('all'),
                 'restUrl'       => 'directorist_bulk_actions/v1',
             ]);
@@ -210,6 +211,16 @@ if (!class_exists('Directorist_Bulk_Actions')) {
                 }
             }
             return $directory_types;
+        }
+
+        /**
+         * Get Statuses
+         */
+        public function get_statuses()
+        {
+            $statuses = get_post_statuses();
+            $statuses['expired'] = 'Expired';
+            return $statuses;
         }
     }
 

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import apiFetch from '@wordpress/api-fetch';
+import { addQueryArgs } from '@wordpress/url';
 import DeleteTypeSelector from './fields/DeleteTypeSelector';
 import DeleteMediaOptions from './fields/DeleteMediaOptions';
 import DeleteMetasField from './fields/DeleteMetasField';
 import CategorySelect from './fields/CategorySelect';
 import DirectoryTypes from './fields/DirectoryTypes';
+import StatusSelect from './fields/StatusSelect';
+import UserSelect from './fields/UserSelect';
 import Swal from "sweetalert2";
 
 const DeleteListings = () => {
@@ -19,28 +22,31 @@ const DeleteListings = () => {
   const [log, setLog] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [directoryOptions, setDirectoryOptions] = useState([]);
+  const [statusOptions, setStatusOptions] = useState([]);
+  const [userOptions, setUserOptions] = useState([]);
 
   const [deleteType, setDeleteType] = useState('trash');
   const [deleteMedia, setDeleteMedia] = useState([]);
   const [deleteMetas, setDeleteMetas] = useState([]);
   const [category, setCategory] = useState([]);
   const [directory, setDirectory] = useState([]);
+  const [status, setStatus] = useState([]);
+  const [users, setUsers] = useState([]);
 
   const limit = 5;
   const progressNumber = (5 / dba_data.totalListings) * 100;
-
-  // const categoryOptions = [
-  //   { label: 'Real Estate', value: 'real-estate' },
-  //   { label: 'Automotive', value: 'automotive' },
-  //   { label: 'Jobs', value: 'jobs' },
-  //   { label: 'Services', value: 'services' },
-  // ];
 
   useEffect(() => {
     apiFetch({ path: '/directorist/v1/listings/categories?hide_empty=true' })
       .then((data) => setCategoryOptions(transformOptions(data)))
       .catch((error) => console.error('Error fetching categories:', error));
+
+    apiFetch( { path: addQueryArgs( '/directorist/v1/users', {custom: 'bulk_action'} ) } )
+    .then( ( data ) =>  setUserOptions(transformUserOptions(data)))
+    .catch((error) => console.error('Error fetching categories:', error));
+
     setDirectoryOptions(transformOptions(window.dba_data.allDirectoryTypes));
+    setStatusOptions(transformStatusOptions(window.dba_data.statuses));
   }, []);
 
   function transformOptions(data) {
@@ -50,37 +56,53 @@ const DeleteListings = () => {
     }));
   }
 
+  function transformUserOptions(data) {
+    return data.map(user => ({
+      label: decodeHtmlEntities(user.name),
+      value: user.id,
+    }));
+  }
+
+  function transformStatusOptions(data) {
+    return Object.entries(data).map(([key, label]) => ({
+      label: label,
+      value: key,
+    }));
+  }
+
   function decodeHtmlEntities(text) {
     const txt = document.createElement('textarea');
     txt.innerHTML = text;
     return txt.value;
   }
 
-  const handleDelete = () => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "This action cannot be undone!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel"
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Execute your action here
-        startDelete();
-        //Swal.fire("Deleted!", "Your item has been deleted.", "success");
+const handleDelete = () => {
+  Swal.fire({
+    title: "Confirm deletion",
+    html: 'To proceed, please type <b>Delete</b>.',
+    input: "text",
+    inputPlaceholder: "Delete",
+    inputAttributes: { autocapitalize: "off", autocorrect: "off" },
+    showCancelButton: true,
+    confirmButtonText: "Delete",
+    cancelButtonText: "Cancel",
+    focusConfirm: false,
+    inputValidator: (value) => {
+      if ((value || "").trim() !== "Delete") {
+        return 'Please type "Delete" exactly to confirm.';
       }
-    });
-  };
+      return undefined; // valid
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Only reaches here if the input matched "Delete"
+      startDelete();
+    }
+  });
+};
 
 
   const startDelete = () => {
-
-    console.log(deleteType);
-    console.log(deleteMedia);
-    console.log(deleteMetas);
-    console.log(category);
-    console.log(directory);
 
     setUpdating(true);
     setCompleted(false);
@@ -104,6 +126,9 @@ const DeleteListings = () => {
             limit: limit,
             category: category,
             directory_types: directory,
+            status: status,
+            users: users,
+            type: deleteType,
             metas: deleteMetas,
             media: deleteMedia,
           }
@@ -155,24 +180,32 @@ const DeleteListings = () => {
 
   return (
     <div className="coordinators-wrapper all-import-wrapper">
-      <h2>Delete Listings</h2>
+      <h3>Delete Listings</h3>
       <p className="note">Please select the options to delete the listings in your website.</p>
       {showError && (
         <p className="error">{showError}</p>
       )}
 
       <div className="delete-fields">
-        <DeleteTypeSelector onChange={(value) => setDeleteType(value)} />
-        <DeleteMediaOptions onChange={(selected) => setDeleteMedia(selected)} />
-        <DeleteMetasField onChange={(data) => setDeleteMetas(data)} />
-        <CategorySelect
-          options={categoryOptions}
-          onChange={(selected) => setCategory(selected)}
-        />
         <DirectoryTypes
           options={directoryOptions}
           onChange={(selected) => setDirectory(selected)}
         />
+        <CategorySelect
+          options={categoryOptions}
+          onChange={(selected) => setCategory(selected)}
+        />
+        <StatusSelect
+          options={statusOptions}
+          onChange={(selected) => setStatus(selected)}
+        />
+        <UserSelect
+          options={userOptions}
+          onChange={(selected) => setUsers(selected)}
+        />
+        <DeleteTypeSelector onChange={(value) => setDeleteType(value)} />
+        <DeleteMediaOptions onChange={(selected) => setDeleteMedia(selected)} />
+        <DeleteMetasField onChange={(data) => setDeleteMetas(data)} />
       </div>
 
       <button

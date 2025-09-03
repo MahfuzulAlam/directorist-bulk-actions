@@ -53,11 +53,14 @@ if (! class_exists('DBA_Delete_Listings')):
             $media = $request->get_param('media') ? $request->get_param('media') : [];
             $directory_types = $request->get_param('directory_types') ? $request->get_param('directory_types') : [];
             $type = $request->get_param('type') ? $request->get_param('type') : 'trash';
+            $users = $request->get_param('users') ? $this->extract_values($request->get_param('users')) : [];
 
-            $directory_types = is_array( $directory_types ) && count( $directory_types ) > 0 ? $this->extract_values( $directory_types ): [];
-            $category = is_array( $category ) && count( $category ) > 0 ? $this->extract_values( $category ): [];
+            $status = $request->get_param('status') ? $this->extract_values($request->get_param('status')) : 'any';
 
-            file_put_contents( __DIR__ . '/log.json', json_encode( [$metas['deleteType'], $media] ) );
+            $directory_types = is_array($directory_types) && count($directory_types) > 0 ? $this->extract_values($directory_types) : [];
+            $category = is_array($category) && count($category) > 0 ? $this->extract_values($category) : [];
+
+            //file_put_contents(__DIR__ . '/log.json', json_encode($request->get_param('users')));
 
             $count = 0;
             $deleted = [];
@@ -65,7 +68,7 @@ if (! class_exists('DBA_Delete_Listings')):
 
             $args = [
                 'post_type'   => ATBDP_POST_TYPE,
-                'post_status' => ['publish', 'private', 'draft', 'expired'],
+                'post_status' => $status,
                 'numberposts' => $limit,
                 'fields'      => 'ids',
                 'offset'      => $offset,
@@ -111,35 +114,44 @@ if (! class_exists('DBA_Delete_Listings')):
                 $args['tax_query'] = $tax_query;
             }
 
+            // Add author query if $users is not empty
+            if (! empty($users) && is_array($users)) {
+                $args['author__in'] = $users;
+            }
+
 
             $posts = get_posts($args);
 
             if ($posts && count($posts) > 0) {
                 foreach ($posts as $post) {
 
-                    $is_deleted = true;
+                    $is_deleted = false;
 
                     // Delete media files
-                    if( isset($media['featured']) && $media['featured'] == true){
-                        //$this->delete_featured_image_by_meta($post);
+                    if (isset($media['featured']) && $media['featured'] == true) {
+                        $this->delete_featured_image_by_meta($post);
                     }
 
-                    if( isset($media['gallery']) && $media['gallery'] == true){
-                        //$this->delete_gallery_images_by_meta($post);
+                    if (isset($media['gallery']) && $media['gallery'] == true) {
+                        $this->delete_gallery_images_by_meta($post);
                     }
 
                     // Delete Postmeta
-                    if( isset( $metas['deleteType'] ) ){
-                        if( $metas['deleteType'] == 'all' ){
-                            //$this->delete_all_post_metas( $post );
+                    if (isset($metas['deleteType'])) {
+                        if ($metas['deleteType'] == 'all') {
+                            $this->delete_all_post_metas($post);
                         }
                     }
 
                     // Delete Listing
-                    //if( $type == 'trash' ) $is_deleted = $this->trash_listing($post);
-                    //if( $type == 'permanent' ) $is_deleted = $this->delete_listing_permanently($post);
-                    
-                    if ($is_deleted) { $deleted[] = $post; } else { $missing++; }
+                    if ($type == 'trash') $is_deleted = $this->trash_listing($post);
+                    if( $type == 'permanent' ) $is_deleted = $this->delete_listing_permanently($post);
+
+                    if ($is_deleted) {
+                        $deleted[] = $post;
+                    } else {
+                        $missing++;
+                    }
 
                     //Counter
                     $count++;
@@ -188,7 +200,7 @@ if (! class_exists('DBA_Delete_Listings')):
             return false; // Failed
         }
 
-        public function delete_all_post_metas( $listing_id )
+        public function delete_all_post_metas($listing_id)
         {
             // Extra cleanup: delete all post meta
             global $wpdb;
@@ -239,7 +251,8 @@ if (! class_exists('DBA_Delete_Listings')):
             return false; // No gallery images found or invalid format
         }
 
-        public function extract_values(array $items, string $key = 'value'): array {
+        public function extract_values(array $items, string $key = 'value'): array
+        {
             return array_column($items, $key);
         }
     }

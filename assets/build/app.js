@@ -15761,16 +15761,16 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const App = () => {
-  const [activeTab, setActiveTab] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('delete_listings');
+  const [activeTab, setActiveTab] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('update_listings');
   const tabs = [{
+    key: 'update_listings',
+    label: 'Update Listings'
+  }, {
     key: 'export_taxonomies',
     label: 'Export Taxonomies'
   }, {
     key: 'import_taxonomies',
     label: 'Import Taxonomies'
-  }, {
-    key: 'update_listings',
-    label: 'Update Listings'
   }, {
     key: 'delete_listings',
     label: 'Delete Listings'
@@ -15843,15 +15843,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/api-fetch */ "@wordpress/api-fetch");
 /* harmony import */ var _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _fields_DeleteTypeSelector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./fields/DeleteTypeSelector */ "./src/components/fields/DeleteTypeSelector.jsx");
-/* harmony import */ var _fields_DeleteMediaOptions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./fields/DeleteMediaOptions */ "./src/components/fields/DeleteMediaOptions.jsx");
-/* harmony import */ var _fields_DeleteMetasField__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./fields/DeleteMetasField */ "./src/components/fields/DeleteMetasField.jsx");
-/* harmony import */ var _fields_CategorySelect__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./fields/CategorySelect */ "./src/components/fields/CategorySelect.jsx");
-/* harmony import */ var _fields_DirectoryTypes__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./fields/DirectoryTypes */ "./src/components/fields/DirectoryTypes.jsx");
-/* harmony import */ var sweetalert2__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! sweetalert2 */ "./node_modules/sweetalert2/dist/sweetalert2.all.js");
-/* harmony import */ var sweetalert2__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(sweetalert2__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var _wordpress_url__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/url */ "@wordpress/url");
+/* harmony import */ var _wordpress_url__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_url__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _fields_DeleteTypeSelector__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./fields/DeleteTypeSelector */ "./src/components/fields/DeleteTypeSelector.jsx");
+/* harmony import */ var _fields_DeleteMediaOptions__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./fields/DeleteMediaOptions */ "./src/components/fields/DeleteMediaOptions.jsx");
+/* harmony import */ var _fields_DeleteMetasField__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./fields/DeleteMetasField */ "./src/components/fields/DeleteMetasField.jsx");
+/* harmony import */ var _fields_CategorySelect__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./fields/CategorySelect */ "./src/components/fields/CategorySelect.jsx");
+/* harmony import */ var _fields_DirectoryTypes__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./fields/DirectoryTypes */ "./src/components/fields/DirectoryTypes.jsx");
+/* harmony import */ var _fields_StatusSelect__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./fields/StatusSelect */ "./src/components/fields/StatusSelect.jsx");
+/* harmony import */ var _fields_UserSelect__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./fields/UserSelect */ "./src/components/fields/UserSelect.jsx");
+/* harmony import */ var sweetalert2__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! sweetalert2 */ "./node_modules/sweetalert2/dist/sweetalert2.all.js");
+/* harmony import */ var sweetalert2__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(sweetalert2__WEBPACK_IMPORTED_MODULE_10__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__);
+
+
+
 
 
 
@@ -15872,31 +15879,45 @@ const DeleteListings = () => {
   const [log, setLog] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [categoryOptions, setCategoryOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [directoryOptions, setDirectoryOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [statusOptions, setStatusOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [userOptions, setUserOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [deleteType, setDeleteType] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('trash');
   const [deleteMedia, setDeleteMedia] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [deleteMetas, setDeleteMetas] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [category, setCategory] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [directory, setDirectory] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [status, setStatus] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [users, setUsers] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const limit = 5;
   const progressNumber = 5 / dba_data.totalListings * 100;
-
-  // const categoryOptions = [
-  //   { label: 'Real Estate', value: 'real-estate' },
-  //   { label: 'Automotive', value: 'automotive' },
-  //   { label: 'Jobs', value: 'jobs' },
-  //   { label: 'Services', value: 'services' },
-  // ];
-
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default()({
       path: '/directorist/v1/listings/categories?hide_empty=true'
     }).then(data => setCategoryOptions(transformOptions(data))).catch(error => console.error('Error fetching categories:', error));
+    _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default()({
+      path: (0,_wordpress_url__WEBPACK_IMPORTED_MODULE_2__.addQueryArgs)('/directorist/v1/users', {
+        custom: 'bulk_action'
+      })
+    }).then(data => setUserOptions(transformUserOptions(data))).catch(error => console.error('Error fetching categories:', error));
     setDirectoryOptions(transformOptions(window.dba_data.allDirectoryTypes));
+    setStatusOptions(transformStatusOptions(window.dba_data.statuses));
   }, []);
   function transformOptions(data) {
     return data.map(item => ({
       label: decodeHtmlEntities(item.name + " - " + item.count),
       value: item.slug
+    }));
+  }
+  function transformUserOptions(data) {
+    return data.map(user => ({
+      label: decodeHtmlEntities(user.name),
+      value: user.id
+    }));
+  }
+  function transformStatusOptions(data) {
+    return Object.entries(data).map(([key, label]) => ({
+      label: label,
+      value: key
     }));
   }
   function decodeHtmlEntities(text) {
@@ -15905,27 +15926,33 @@ const DeleteListings = () => {
     return txt.value;
   }
   const handleDelete = () => {
-    sweetalert2__WEBPACK_IMPORTED_MODULE_7___default().fire({
-      title: "Are you sure?",
-      text: "This action cannot be undone!",
-      icon: "warning",
+    sweetalert2__WEBPACK_IMPORTED_MODULE_10___default().fire({
+      title: "Confirm deletion",
+      html: 'To proceed, please type <b>Delete</b>.',
+      input: "text",
+      inputPlaceholder: "Delete",
+      inputAttributes: {
+        autocapitalize: "off",
+        autocorrect: "off"
+      },
       showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel"
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      focusConfirm: false,
+      inputValidator: value => {
+        if ((value || "").trim() !== "Delete") {
+          return 'Please type "Delete" exactly to confirm.';
+        }
+        return undefined; // valid
+      }
     }).then(result => {
       if (result.isConfirmed) {
-        // Execute your action here
+        // Only reaches here if the input matched "Delete"
         startDelete();
-        //Swal.fire("Deleted!", "Your item has been deleted.", "success");
       }
     });
   };
   const startDelete = () => {
-    console.log(deleteType);
-    console.log(deleteMedia);
-    console.log(deleteMetas);
-    console.log(category);
-    console.log(directory);
     setUpdating(true);
     setCompleted(false);
     setTotalUpdated(0);
@@ -15946,6 +15973,9 @@ const DeleteListings = () => {
             limit: limit,
             category: category,
             directory_types: directory,
+            status: status,
+            users: users,
+            type: deleteType,
             metas: deleteMetas,
             media: deleteMedia
           }
@@ -15986,63 +16016,69 @@ const DeleteListings = () => {
     };
     runBatch();
   };
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
     className: "coordinators-wrapper all-import-wrapper",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("h2", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("h3", {
       children: "Delete Listings"
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
       className: "note",
       children: "Please select the options to delete the listings in your website."
-    }), showError && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
+    }), showError && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
       className: "error",
       children: showError
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
       className: "delete-fields",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_fields_DeleteTypeSelector__WEBPACK_IMPORTED_MODULE_2__["default"], {
-        onChange: value => setDeleteType(value)
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_fields_DeleteMediaOptions__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        onChange: selected => setDeleteMedia(selected)
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_fields_DeleteMetasField__WEBPACK_IMPORTED_MODULE_4__["default"], {
-        onChange: data => setDeleteMetas(data)
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_fields_CategorySelect__WEBPACK_IMPORTED_MODULE_5__["default"], {
-        options: categoryOptions,
-        onChange: selected => setCategory(selected)
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_fields_DirectoryTypes__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DirectoryTypes__WEBPACK_IMPORTED_MODULE_7__["default"], {
         options: directoryOptions,
         onChange: selected => setDirectory(selected)
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_CategorySelect__WEBPACK_IMPORTED_MODULE_6__["default"], {
+        options: categoryOptions,
+        onChange: selected => setCategory(selected)
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_StatusSelect__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        options: statusOptions,
+        onChange: selected => setStatus(selected)
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_UserSelect__WEBPACK_IMPORTED_MODULE_9__["default"], {
+        options: userOptions,
+        onChange: selected => setUsers(selected)
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DeleteTypeSelector__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        onChange: value => setDeleteType(value)
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DeleteMediaOptions__WEBPACK_IMPORTED_MODULE_4__["default"], {
+        onChange: selected => setDeleteMedia(selected)
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DeleteMetasField__WEBPACK_IMPORTED_MODULE_5__["default"], {
+        onChange: data => setDeleteMetas(data)
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("button", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("button", {
       className: "update-coordinates",
       onClick: handleDelete,
       disabled: updating,
       children: updating ? 'Deleting ..' : 'Start Delete'
-    }), progress > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
+    }), progress > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
       className: "progress-bar",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
         className: "progress-bar-fill",
         style: {
           width: `${progress}%`
         }
       })
-    }), totalUpdated > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("p", {
+    }), totalUpdated > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("p", {
       className: "coordinator-status",
-      children: ["Total Deleted: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+      children: ["Total Deleted: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
         children: totalUpdated
       })]
-    }), missingAddress > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("p", {
+    }), missingAddress > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("p", {
       className: "coordinator-status",
-      children: ["Total Failed: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("strong", {
+      children: ["Total Failed: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
         children: missingAddress
       })]
-    }), completed && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
+    }), completed && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
       className: "coordinator-status",
       style: {
         color: 'green'
       },
       children: "\u2705 All listings processed!"
-    }), log.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
+    }), log.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
       className: "coordinator-log",
-      children: [...log].reverse().map((entry, i) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+      children: [...log].reverse().map((entry, i) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
         children: ["- ", entry]
       }, i))
     })]
@@ -16416,7 +16452,7 @@ const RunListingUpdate = () => {
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
     className: "coordinators-wrapper all-import-wrapper",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h2", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
       children: "Update Listings Infomation"
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("p", {
       className: "note",
@@ -16550,7 +16586,7 @@ const SetCoordinates = () => {
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
     className: "coordinators-wrapper all-import-wrapper",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h2", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
       children: "Update Listing Coordinates"
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
       className: "note",
@@ -16704,7 +16740,7 @@ const UpdateListings = () => {
     children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
       className: "all-import-wrapper import-card",
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h3", {
-        children: "Update Listings Here"
+        children: "Update Listings"
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("p", {
         children: "Select the directory type you want to upload the listings with CSV file"
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("p", {
@@ -17075,7 +17111,7 @@ const DirectoryTypes = ({
       children: "Directory Types"
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
       className: "help-text",
-      children: "Select directory to delete listings from:"
+      children: "Select directory types to delete listings from:"
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(react_select__WEBPACK_IMPORTED_MODULE_1__["default"], {
       isMulti: true,
       isSearchable: true,
@@ -17087,6 +17123,110 @@ const DirectoryTypes = ({
   });
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DirectoryTypes);
+
+/***/ }),
+
+/***/ "./src/components/fields/StatusSelect.jsx":
+/*!************************************************!*\
+  !*** ./src/components/fields/StatusSelect.jsx ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+const StatusSelect = ({
+  options = [],
+  onChange
+}) => {
+  const [selectedStatus, setSelectedStatus] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const handleChange = selected => {
+    setSelectedStatus(selected);
+    if (onChange) {
+      onChange(selected);
+    }
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+    className: "status-select-field",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+      className: "label",
+      children: "Status"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+      className: "help-text",
+      children: "Select status to delete listings"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(react_select__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      isMulti: true,
+      isSearchable: true,
+      options: options,
+      value: selectedStatus,
+      onChange: handleChange,
+      placeholder: "Select status..."
+    })]
+  });
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (StatusSelect);
+
+/***/ }),
+
+/***/ "./src/components/fields/UserSelect.jsx":
+/*!**********************************************!*\
+  !*** ./src/components/fields/UserSelect.jsx ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_select__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-select */ "./node_modules/react-select/dist/react-select.esm.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+const UserSelect = ({
+  options = [],
+  onChange
+}) => {
+  const [selectedUsers, setSelectedUsers] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const handleChange = selected => {
+    setSelectedUsers(selected);
+    if (onChange) {
+      onChange(selected);
+    }
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+    className: "status-select-field",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+      className: "label",
+      children: "Users"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+      className: "help-text",
+      children: "Select users to delete their listings"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(react_select__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      isMulti: true,
+      isSearchable: true,
+      options: options,
+      value: selectedUsers,
+      onChange: handleChange,
+      placeholder: "Select users..."
+    })]
+  });
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (UserSelect);
 
 /***/ }),
 
@@ -17156,6 +17296,17 @@ module.exports = window["wp"]["apiFetch"];
 
 "use strict";
 module.exports = window["wp"]["element"];
+
+/***/ }),
+
+/***/ "@wordpress/url":
+/*!*****************************!*\
+  !*** external ["wp","url"] ***!
+  \*****************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = window["wp"]["url"];
 
 /***/ }),
 

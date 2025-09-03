@@ -16,13 +16,13 @@ if (!class_exists('DBA_Update_Listings')) :
             register_rest_route(
                 'directorist_bulk_actions/v1',
                 '/update/listings',
-                array(
+                [
                     'methods'             => 'POST',
                     'callback'            => array($this, 'handle_update_listings'),
                     'permission_callback' => function () {
                         return current_user_can('manage_options');
                     },
-                )
+                ]
             );
         }
 
@@ -30,15 +30,10 @@ if (!class_exists('DBA_Update_Listings')) :
         {
             $directory = $request->get_param('directory');
             $items     = $request->get_param('items');
-            // $nonce     = $request->get_header('x_wp_nonce');
 
             if (empty($directory)) {
                 return new WP_REST_Response(['error' => 'Invalid or missing directory type'], 400);
             }
-
-            // if (!wp_verify_nonce($nonce, 'dba_rest')) {
-            //     return new WP_REST_Response(['status' => 'error', 'message' => 'Invalid nonce'], 403);
-            // }
 
             $results = [];
 

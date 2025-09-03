@@ -14,7 +14,7 @@ const DirectoryTypes = ({ options = [], onChange }) => {
   return (
     <div className="category-select-field">
       <label className="label">Directory Types</label>
-      <p className="help-text">Select directory to delete listings from:</p>
+      <p className="help-text">Select directory types to delete listings from:</p>
       <Select
         isMulti
         isSearchable

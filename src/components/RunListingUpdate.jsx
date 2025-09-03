@@ -82,7 +82,7 @@ const RunListingUpdate = () => {
 
   return (
     <div className="coordinators-wrapper all-import-wrapper">
-      <h2>Update Listings Infomation</h2>
+      <h3>Update Listings Infomation</h3>
       <p className="note">
         You can update listing information by using this method. Please use the following action hook to update the listings.<br/>
         "directorist_bulk_actions_run_update_loop"<br/>

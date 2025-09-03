@@ -19,7 +19,6 @@ if (! class_exists('DBA_Taxonomy_Import')):
      */
     class DBA_Taxonomy_Import
     {
-
         /**
          * DBA_Taxonomy_Import Constructor
          */
@@ -88,10 +87,16 @@ if (! class_exists('DBA_Taxonomy_Import')):
 
                 // Check if term already exists
                 $existing_id = 0;
-                $check_id = get_term_by('id', $term_id, $taxonomy);
-                if( $check_id ) $existing_id = $check_id->term_id;
-                $check_term = get_term_by('slug', $slug, $taxonomy);
-                if( $check_term ) $existing_id = $check_term->term_id;
+
+                if( $term_id ){
+                    $check_id = get_term_by('id', $term_id, $taxonomy);
+                    if( $check_id ) $existing_id = $check_id->term_id;
+                }
+
+                if( $slug ){
+                    $check_term = get_term_by('slug', $slug, $taxonomy);
+                    if( $check_term ) $existing_id = $check_term->term_id;
+                }
 
                 // Get parents
                 $parent_id = $this->get_parent_term_id($parent, $taxonomy, $directory_types);
@@ -120,17 +125,7 @@ if (! class_exists('DBA_Taxonomy_Import')):
 
                     $result = $this->insert_term( $name, $taxonomy, $args, $meta,  );
 
-                    if ( is_wp_error( $result ) ) {
-                        $response[] = [
-                            'status'  => 'failed',
-                            'message' => $result->get_error_message(),
-                        ];
-                    } else {
-                        $response[] = [
-                            'status' => 'added',
-                        ];
-                    }
-                    
+                    $response[] = $result ? ['status' => 'added']: ['status' => 'failed'];
                 }
             }
 
@@ -209,7 +204,6 @@ if (! class_exists('DBA_Taxonomy_Import')):
         {
             if (!empty($parent)) {
                 $parent_term = get_term_by('name', $parent, $taxonomy);
-                //file_put_contents(__DIR__ . '/items.json', json_encode([$parent_term, $taxonomy]));
                 if ($parent_term && !is_wp_error($parent_term)) {
                     return $parent_term->term_id;
                 }else{
