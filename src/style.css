@@ -1,5 +1,5 @@
 /* Root scope (wrap your settings page with a container class if possible) */
-.my-plugin-admin,
+.directorist-bulk-actions-admin,
 .wrap {
     /* fallback to .wrap if you can't add a wrapper */
     --wpc-bg: #fff;
@@ -28,6 +28,13 @@
 
     font-family: var(--wp--preset--font-family--system, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif);
     color: var(--wpc-text);
+}
+
+.directorist-bulk-actions-admin
+.wp-heading-inline
+{
+    font-size: 20px;
+    margin-bottom: var(--wpc-gap-m);
 }
 
 /* ========== Tabs ========== */

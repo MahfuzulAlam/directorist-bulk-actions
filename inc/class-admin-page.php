@@ -35,7 +35,7 @@ if ( ! class_exists( 'DBA_Admin_Page' ) ) :
                 __('Bulk Actions', 'directorist-bulk-actions'),
                 'manage_options',
                 'directorist-bulk-actions',
-                array($this, 'directorist_bulk_actions_layout')
+                [$this, 'directorist_bulk_actions_layout']
             );
         }
 

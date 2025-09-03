@@ -16,7 +16,7 @@ const App = () => {
     ];
 
     return (
-        <div className="wrap">
+        <div className="wrap directorist-bulk-actions-admin">
             <h1 className="wp-heading-inline">Directorist - Bulk Actions</h1>
 
             <div className="tab-wrapper">
