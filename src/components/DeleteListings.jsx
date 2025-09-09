@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import apiFetch from '@wordpress/api-fetch';
 import { addQueryArgs } from '@wordpress/url';
 import DeleteTypeSelector from './fields/DeleteTypeSelector';
@@ -10,265 +10,496 @@ import StatusSelect from './fields/StatusSelect';
 import UserSelect from './fields/UserSelect';
 import Swal from "sweetalert2";
 
+/**
+ * DeleteListings Component
+ * 
+ * A React component for bulk deletion of listings with filtering options.
+ * Provides real-time count updates and progress tracking during deletion process.
+ * 
+ * @returns {JSX.Element} The DeleteListings component
+ */
 const DeleteListings = () => {
+  // Constants
+  const BATCH_LIMIT = 5;
+  const CONFIRMATION_TEXT = 'Delete';
+  
+  // State for deletion process tracking
+  const [deletionState, setDeletionState] = useState({
+    offset: 0,
+    totalDeleted: 0,
+    totalFailed: 0,
+    isDeleting: false,
+    progress: 0,
+    isCompleted: false,
+    error: '',
+    log: []
+  });
 
-  const [offset, setOffset] = useState(0);
-  const [totalUpdated, setTotalUpdated] = useState(0);
-  const [missingAddress, setMissingAddress] = useState(0);
-  const [updating, setUpdating] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [completed, setCompleted] = useState(false);
-  const [showError, setShowError] = useState('');
-  const [log, setLog] = useState([]);
-  const [categoryOptions, setCategoryOptions] = useState([]);
-  const [directoryOptions, setDirectoryOptions] = useState([]);
-  const [statusOptions, setStatusOptions] = useState([]);
-  const [userOptions, setUserOptions] = useState([]);
+  // State for filter options
+  const [filterOptions, setFilterOptions] = useState({
+    category: [],
+    directory: [],
+    status: [],
+    users: []
+  });
+
+  // State for deletion configuration
+  const [deletionConfig, setDeletionConfig] = useState({
+    type: 'trash',
+    media: [],
+    metas: []
+  });
+
+  // State for dropdown options
+  const [dropdownOptions, setDropdownOptions] = useState({
+    categories: [],
+    directories: [],
+    statuses: [],
+    users: []
+  });
+
+  // State for listing count
   const [totalListings, setTotalListings] = useState(0);
 
-  const [deleteType, setDeleteType] = useState('trash');
-  const [deleteMedia, setDeleteMedia] = useState([]);
-  const [deleteMetas, setDeleteMetas] = useState([]);
-  const [category, setCategory] = useState([]);
-  const [directory, setDirectory] = useState([]);
-  const [status, setStatus] = useState([]);
-  const [users, setUsers] = useState([]);
-
-  const limit = 5;
-  const progressNumber = (5 / dba_data.totalListings) * 100;
-
-  useEffect(()=>{
-    setTotalListings(window.dba_data.totalListings);
+  // Memoized progress calculation
+  const progressIncrement = useMemo(() => {
+    const totalListingsCount = window.dba_data?.totalListings || 1;
+    return (BATCH_LIMIT / totalListingsCount) * 100;
   }, []);
 
+  /**
+   * Initialize component with default total listings count
+   */
   useEffect(() => {
-    apiFetch({ path: '/directorist/v1/listings/categories?hide_empty=true' })
-      .then((data) => setCategoryOptions(transformOptions(data)))
-      .catch((error) => console.error('Error fetching categories:', error));
-
-    apiFetch( { path: addQueryArgs( '/directorist/v1/users', {custom: 'bulk_action'} ) } )
-    .then( ( data ) =>  setUserOptions(transformUserOptions(data)))
-    .catch((error) => console.error('Error fetching categories:', error));
-
-    setDirectoryOptions(transformOptions(window.dba_data.allDirectoryTypes));
-    setStatusOptions(transformStatusOptions(window.dba_data.statuses));
+    if (window.dba_data?.totalListings) {
+      setTotalListings(window.dba_data.totalListings);
+    }
   }, []);
 
-  const getListingCount = async (updatedCategory = category, updatedDirectory = directory, updatedStatus = status, updatedUsers = users) => {
+  /**
+   * Load initial dropdown options on component mount
+   */
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        // Load categories
+        const categoriesResponse = await apiFetch({ 
+          path: '/directorist/v1/listings/categories?hide_empty=true' 
+        });
+        setDropdownOptions(prev => ({
+          ...prev,
+          categories: transformOptions(categoriesResponse)
+        }));
+
+        // Load users
+        const usersResponse = await apiFetch({ 
+          path: addQueryArgs('/directorist/v1/users', { custom: 'bulk_action' }) 
+        });
+        setDropdownOptions(prev => ({
+          ...prev,
+          users: transformUserOptions(usersResponse)
+        }));
+
+        // Load directories and statuses from global data
+        if (window.dba_data?.allDirectoryTypes) {
+          setDropdownOptions(prev => ({
+            ...prev,
+            directories: transformOptions(window.dba_data.allDirectoryTypes)
+          }));
+        }
+
+        if (window.dba_data?.statuses) {
+          setDropdownOptions(prev => ({
+            ...prev,
+            statuses: transformStatusOptions(window.dba_data.statuses)
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+        setDeletionState(prev => ({
+          ...prev,
+          error: 'Failed to load filter options. Please refresh the page.'
+        }));
+      }
+    };
+
+    loadInitialData();
+  }, []);
+
+  /**
+   * Transform API data to dropdown options format
+   * @param {Array} data - Raw API data
+   * @returns {Array} Transformed options array
+   */
+  const transformOptions = useCallback((data) => {
+    if (!Array.isArray(data)) return [];
+    
+    return data.map(item => ({
+      label: sanitizeText(`${item.name} - ${item.count}`),
+      value: sanitizeText(item.slug)
+    }));
+  }, []);
+
+  /**
+   * Transform user data to dropdown options format
+   * @param {Array} data - Raw user data
+   * @returns {Array} Transformed user options array
+   */
+  const transformUserOptions = useCallback((data) => {
+    if (!Array.isArray(data)) return [];
+    
+    return data.map(user => ({
+      label: sanitizeText(user.name),
+      value: parseInt(user.id, 10) || 0
+    }));
+  }, []);
+
+  /**
+   * Transform status data to dropdown options format
+   * @param {Object} data - Raw status data
+   * @returns {Array} Transformed status options array
+   */
+  const transformStatusOptions = useCallback((data) => {
+    if (!data || typeof data !== 'object') return [];
+    
+    return Object.entries(data).map(([key, label]) => ({
+      label: sanitizeText(label),
+      value: sanitizeText(key)
+    }));
+  }, []);
+
+  /**
+   * Sanitize text input to prevent XSS attacks
+   * @param {string} text - Text to sanitize
+   * @returns {string} Sanitized text
+   */
+  const sanitizeText = useCallback((text) => {
+    if (typeof text !== 'string') return '';
+    
+    const textarea = document.createElement('textarea');
+    textarea.textContent = text;
+    return textarea.value;
+  }, []);
+
+  /**
+   * Get listing count based on current filters
+   * @param {Array} updatedCategory - Updated category filter
+   * @param {Array} updatedDirectory - Updated directory filter
+   * @param {Array} updatedStatus - Updated status filter
+   * @param {Array} updatedUsers - Updated users filter
+   */
+  const getListingCount = useCallback(async (
+    updatedCategory = filterOptions.category,
+    updatedDirectory = filterOptions.directory,
+    updatedStatus = filterOptions.status,
+    updatedUsers = filterOptions.users
+  ) => {
     try {
+      // Validate API endpoint
+      if (!window.dba_data?.restUrl) {
+        throw new Error('API endpoint not configured');
+      }
+
       const response = await apiFetch({
         path: `${window.dba_data.restUrl}/listing/count`,
         method: 'POST',
         data: {
-          category: updatedCategory,
-          directory_types: updatedDirectory,
-          status: updatedStatus,
-          users: updatedUsers,
+          category: Array.isArray(updatedCategory) ? updatedCategory : [],
+          directory_types: Array.isArray(updatedDirectory) ? updatedDirectory : [],
+          status: Array.isArray(updatedStatus) ? updatedStatus : [],
+          users: Array.isArray(updatedUsers) ? updatedUsers : []
         }
       });
-      if (response && response.count !== undefined) {
-        setTotalListings(response.count);
+
+      if (response?.count !== undefined && typeof response.count === 'number') {
+        setTotalListings(Math.max(0, response.count));
       }
     } catch (error) {
-      console.error('API Error:', error);
+      console.error('Error fetching listing count:', error);
+      setDeletionState(prev => ({
+        ...prev,
+        error: 'Failed to fetch listing count. Please try again.'
+      }));
     }
-  }
+  }, [filterOptions]);
 
-  function transformOptions(data) {
-    return data.map(item => ({
-      label: decodeHtmlEntities(item.name + " - " + item.count),
-      value: item.slug,
-    }));
-  }
+  /**
+   * Handle filter option changes
+   * @param {string} filterType - Type of filter being changed
+   * @param {Array} selectedValues - New selected values
+   */
+  const handleFilterChange = useCallback((filterType, selectedValues) => {
+    const newFilterOptions = {
+      ...filterOptions,
+      [filterType]: Array.isArray(selectedValues) ? selectedValues : []
+    };
+    
+    setFilterOptions(newFilterOptions);
+    
+    // Update count with new filter values
+    getListingCount(
+      newFilterOptions.category,
+      newFilterOptions.directory,
+      newFilterOptions.status,
+      newFilterOptions.users
+    );
+  }, [filterOptions, getListingCount]);
 
-  function transformUserOptions(data) {
-    return data.map(user => ({
-      label: decodeHtmlEntities(user.name),
-      value: user.id,
-    }));
-  }
+  /**
+   * Show confirmation dialog before starting deletion
+   */
+  const handleDelete = useCallback(() => {
+    // Validate that at least one filter is selected
+    const hasFilters = Object.values(filterOptions).some(filter => 
+      Array.isArray(filter) && filter.length > 0
+    );
 
-  function transformStatusOptions(data) {
-    return Object.entries(data).map(([key, label]) => ({
-      label: label,
-      value: key,
-    }));
-  }
+    if (!hasFilters) {
+      Swal.fire({
+        title: 'No Filters Selected',
+        text: 'Please select at least one filter option before proceeding.',
+        icon: 'warning',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
 
-  function decodeHtmlEntities(text) {
-    const txt = document.createElement('textarea');
-    txt.innerHTML = text;
-    return txt.value;
-  }
-
-const handleDelete = () => {
-  Swal.fire({
-    title: "Confirm deletion",
-    html: 'To proceed, please type <b>Delete</b>.',
-    input: "text",
-    inputPlaceholder: "Delete",
-    inputAttributes: { autocapitalize: "off", autocorrect: "off" },
-    showCancelButton: true,
-    confirmButtonText: "Delete",
-    cancelButtonText: "Cancel",
-    focusConfirm: false,
-    inputValidator: (value) => {
-      if ((value || "").trim() !== "Delete") {
-        return 'Please type "Delete" exactly to confirm.';
+    Swal.fire({
+      title: "Confirm Deletion",
+      html: `To proceed, please type <b>${CONFIRMATION_TEXT}</b>.`,
+      input: "text",
+      inputPlaceholder: CONFIRMATION_TEXT,
+      inputAttributes: { 
+        autocapitalize: "off", 
+        autocorrect: "off",
+        maxlength: CONFIRMATION_TEXT.length
+      },
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: '#d33',
+      focusConfirm: false,
+      inputValidator: (value) => {
+        const trimmedValue = (value || "").trim();
+        if (trimmedValue !== CONFIRMATION_TEXT) {
+          return `Please type "${CONFIRMATION_TEXT}" exactly to confirm.`;
+        }
+        return null;
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        startDeletion();
       }
-      return undefined; // valid
-    },
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Only reaches here if the input matched "Delete"
-      startDelete();
-    }
-  });
-};
+    });
+  }, [filterOptions]);
 
-
-  const startDelete = () => {
-
-    setUpdating(true);
-    setCompleted(false);
-    setTotalUpdated(0);
-    setMissingAddress(0);
-    setOffset(0);
-    setProgress(0);
-    setLog([]);
-    setShowError('');
+  /**
+   * Start the bulk deletion process
+   */
+  const startDeletion = useCallback(() => {
+    // Reset deletion state
+    setDeletionState({
+      offset: 0,
+      totalDeleted: 0,
+      totalFailed: 0,
+      isDeleting: true,
+      progress: 0,
+      isCompleted: false,
+      error: '',
+      log: []
+    });
 
     let currentOffset = 0;
-    let allUpdated = 0;
+    let allDeleted = 0;
 
-    const runBatch = async () => {
+    /**
+     * Process deletion in batches
+     */
+    const processBatch = async () => {
       try {
         const response = await apiFetch({
           path: `${window.dba_data.restUrl}/delete/listings`,
           method: 'POST',
           data: {
             offset: currentOffset,
-            limit: limit,
-            category: category,
-            directory_types: directory,
-            status: status,
-            users: users,
-            type: deleteType,
-            metas: deleteMetas,
-            media: deleteMedia,
+            limit: BATCH_LIMIT,
+            category: filterOptions.category,
+            directory_types: filterOptions.directory,
+            status: filterOptions.status,
+            users: filterOptions.users,
+            type: deletionConfig.type,
+            metas: deletionConfig.metas,
+            media: deletionConfig.media,
           }
         });
 
-        if (response.status == 'error') {
-          setShowError(response.message);
-          setUpdating(false);
+        // Handle API errors
+        if (response?.status === 'error') {
+          setDeletionState(prev => ({
+            ...prev,
+            error: response.message || 'An error occurred during deletion',
+            isDeleting: false
+          }));
           return;
         }
 
-        if (response.status == 'completed') {
-          setCompleted(true);
-          setUpdating(false);
+        // Handle completion
+        if (response?.status === 'completed') {
+          setDeletionState(prev => ({
+            ...prev,
+            isCompleted: true,
+            isDeleting: false
+          }));
           return;
         }
 
-        const postsCount = response.posts?.length || 0;
-        const deletedCount = response.deleted?.length || 0;
-        const curMissAdrs = postsCount - deletedCount;
+        const postsCount = response?.posts?.length || 0;
+        const deletedCount = response?.deleted?.length || 0;
+        const failedCount = postsCount - deletedCount;
 
-        setLog(prev => [...prev, `Batch ${currentOffset / limit}: ${deletedCount}/${postsCount} deleted.`]);
+        // Update log
+        setDeletionState(prev => ({
+          ...prev,
+          log: [...prev.log, `Batch ${Math.floor(currentOffset / BATCH_LIMIT) + 1}: ${deletedCount}/${postsCount} deleted.`]
+        }));
 
+        // Check if no more posts to process
         if (postsCount === 0) {
-          setCompleted(true);
-          setUpdating(false);
+          setDeletionState(prev => ({
+            ...prev,
+            isCompleted: true,
+            isDeleting: false
+          }));
           return;
         }
 
+        // Update counters
         allUpdated += deletedCount;
-        setTotalUpdated(allUpdated);
-        currentOffset += limit;
-        setOffset((prev) => prev + limit);
-        setProgress((prev) => prev + progressNumber);
-        setMissingAddress((prev) => prev + curMissAdrs);
+        currentOffset += BATCH_LIMIT;
+
+        setDeletionState(prev => ({
+          ...prev,
+          totalDeleted: allUpdated,
+          totalFailed: prev.totalFailed + failedCount,
+          offset: currentOffset,
+          progress: Math.min(100, prev.progress + progressIncrement)
+        }));
 
         // Continue to next batch
-        runBatch();
+        processBatch();
 
       } catch (error) {
-        console.error('API Error:', error);
-        setLog(prev => [...prev, `Error at offset ${currentOffset}`]);
-        setUpdating(false);
+        console.error('Batch processing error:', error);
+        setDeletionState(prev => ({
+          ...prev,
+          log: [...prev.log, `Error at offset ${currentOffset}: ${error.message}`],
+          isDeleting: false
+        }));
       }
     };
 
-    runBatch();
-  }
+    processBatch();
+  }, [filterOptions, deletionConfig, progressIncrement]);
 
   return (
     <div className="coordinators-wrapper all-import-wrapper">
       <h3>Delete Listings</h3>
-      <p className="note">Please select the options to delete the listings in your website.</p>
-      {showError && (
-        <p className="error">{showError}</p>
+      <p className="note">
+        Please select the options to delete the listings in your website.
+      </p>
+      
+      {deletionState.error && (
+        <div className="error" role="alert">
+          {deletionState.error}
+        </div>
       )}
 
       <div className="delete-fields">
         <DirectoryTypes
-          options={directoryOptions}
-          onChange={(selected) => {setDirectory(selected); getListingCount(category, selected, status, users)}}
+          options={dropdownOptions.directories}
+          onChange={(selected) => handleFilterChange('directory', selected)}
         />
+        
         <CategorySelect
-          options={categoryOptions}
-          onChange={(selected) => {setCategory(selected); getListingCount(selected, directory, status, users)}}
+          options={dropdownOptions.categories}
+          onChange={(selected) => handleFilterChange('category', selected)}
         />
+        
         <StatusSelect
-          options={statusOptions}
-          onChange={(selected) => {setStatus(selected); getListingCount(category, directory, selected, users)}}
+          options={dropdownOptions.statuses}
+          onChange={(selected) => handleFilterChange('status', selected)}
         />
+        
         <UserSelect
-          options={userOptions}
-          onChange={(selected) => {setUsers(selected); getListingCount(category, directory, status, selected)}}
+          options={dropdownOptions.users}
+          onChange={(selected) => handleFilterChange('users', selected)}
         />
-        <DeleteTypeSelector onChange={(value) => setDeleteType(value)} />
-        <DeleteMediaOptions onChange={(selected) => setDeleteMedia(selected)} />
-        <DeleteMetasField onChange={(data) => setDeleteMetas(data)} />
-        { totalListings && totalListings > 0 && <p className="error">Total Listings to be Deleted: {totalListings}</p> }
+        
+        <DeleteTypeSelector 
+          onChange={(value) => setDeletionConfig(prev => ({ ...prev, type: value }))} 
+        />
+        
+        <DeleteMediaOptions 
+          onChange={(selected) => setDeletionConfig(prev => ({ ...prev, media: selected }))} 
+        />
+        
+        <DeleteMetasField 
+          onChange={(data) => setDeletionConfig(prev => ({ ...prev, metas: data }))} 
+        />
+        
+        {totalListings !== null && (
+          <p className="error">
+            Total Listings to be Deleted: <strong>{totalListings}</strong>
+          </p>
+        )}
       </div>
 
       <button
-        className="update-coordinates"
+        className="update-coordinates delete-listings"
         onClick={handleDelete}
-        disabled={updating}
+        disabled={deletionState.isDeleting || totalListings < 1}
+        type="button"
+        aria-label={deletionState.isDeleting ? 'Deleting listings...' : 'Start deletion process'}
       >
-        {updating ? 'Deleting ..' : 'Start Delete'}
+        {deletionState.isDeleting ? 'Deleting...' : 'Start Delete'}
       </button>
 
-      {progress > 0 && (
-        <div className="progress-bar">
-          <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+      {deletionState.progress > 0 && (
+        <div className="progress-bar" role="progressbar" aria-valuenow={deletionState.progress} aria-valuemin="0" aria-valuemax="100">
+          <div 
+            className="progress-bar-fill" 
+            style={{ width: `${Math.min(100, deletionState.progress)}%` }}
+          />
         </div>
       )}
 
-      {totalUpdated > 0 && (
+      {deletionState.totalDeleted > 0 && (
         <p className="coordinator-status">
-          Total Deleted: <strong>{totalUpdated}</strong>
+          Total Deleted: <strong>{deletionState.totalDeleted}</strong>
         </p>
       )}
-      {missingAddress > 0 && (
+      
+      {deletionState.totalFailed > 0 && (
         <p className="coordinator-status">
-          Total Failed: <strong>{missingAddress}</strong>
+          Total Failed: <strong>{deletionState.totalFailed}</strong>
         </p>
       )}
-      {completed && <p className="coordinator-status" style={{ color: 'green' }}>✅ All listings processed!</p>}
+      
+      {deletionState.isCompleted && (
+        <p className="coordinator-status" style={{ color: 'green' }}>
+          ✅ All listings processed!
+        </p>
+      )}
 
-      {log.length > 0 && (
-        <div className="coordinator-log">
-          {[...log].reverse().map((entry, i) => (
-            <div key={i}>- {entry}</div>
+      {deletionState.log.length > 0 && (
+        <div className="coordinator-log" role="log" aria-live="polite">
+          {[...deletionState.log].reverse().map((entry, index) => (
+            <div key={index}>- {entry}</div>
           ))}
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 export default DeleteListings;

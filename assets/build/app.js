@@ -15868,177 +15868,371 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+/**
+ * DeleteListings Component
+ * 
+ * A React component for bulk deletion of listings with filtering options.
+ * Provides real-time count updates and progress tracking during deletion process.
+ * 
+ * @returns {JSX.Element} The DeleteListings component
+ */
+
 const DeleteListings = () => {
-  const [offset, setOffset] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
-  const [totalUpdated, setTotalUpdated] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
-  const [missingAddress, setMissingAddress] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
-  const [updating, setUpdating] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [progress, setProgress] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
-  const [completed, setCompleted] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [showError, setShowError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
-  const [log, setLog] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const [categoryOptions, setCategoryOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const [directoryOptions, setDirectoryOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const [statusOptions, setStatusOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const [userOptions, setUserOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  // Constants
+  const BATCH_LIMIT = 5;
+  const CONFIRMATION_TEXT = 'Delete';
+
+  // State for deletion process tracking
+  const [deletionState, setDeletionState] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
+    offset: 0,
+    totalDeleted: 0,
+    totalFailed: 0,
+    isDeleting: false,
+    progress: 0,
+    isCompleted: false,
+    error: '',
+    log: []
+  });
+
+  // State for filter options
+  const [filterOptions, setFilterOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
+    category: [],
+    directory: [],
+    status: [],
+    users: []
+  });
+
+  // State for deletion configuration
+  const [deletionConfig, setDeletionConfig] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
+    type: 'trash',
+    media: [],
+    metas: []
+  });
+
+  // State for dropdown options
+  const [dropdownOptions, setDropdownOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
+    categories: [],
+    directories: [],
+    statuses: [],
+    users: []
+  });
+
+  // State for listing count
   const [totalListings, setTotalListings] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
-  const [deleteType, setDeleteType] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('trash');
-  const [deleteMedia, setDeleteMedia] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const [deleteMetas, setDeleteMetas] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const [category, setCategory] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const [directory, setDirectory] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const [status, setStatus] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const [users, setUsers] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const limit = 5;
-  const progressNumber = 5 / dba_data.totalListings * 100;
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    setTotalListings(window.dba_data.totalListings);
+
+  // Memoized progress calculation
+  const progressIncrement = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    const totalListingsCount = window.dba_data?.totalListings || 1;
+    return BATCH_LIMIT / totalListingsCount * 100;
   }, []);
+
+  /**
+   * Initialize component with default total listings count
+   */
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default()({
-      path: '/directorist/v1/listings/categories?hide_empty=true'
-    }).then(data => setCategoryOptions(transformOptions(data))).catch(error => console.error('Error fetching categories:', error));
-    _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default()({
-      path: (0,_wordpress_url__WEBPACK_IMPORTED_MODULE_2__.addQueryArgs)('/directorist/v1/users', {
-        custom: 'bulk_action'
-      })
-    }).then(data => setUserOptions(transformUserOptions(data))).catch(error => console.error('Error fetching categories:', error));
-    setDirectoryOptions(transformOptions(window.dba_data.allDirectoryTypes));
-    setStatusOptions(transformStatusOptions(window.dba_data.statuses));
+    if (window.dba_data?.totalListings) {
+      setTotalListings(window.dba_data.totalListings);
+    }
   }, []);
-  const getListingCount = async (updatedCategory = category, updatedDirectory = directory, updatedStatus = status, updatedUsers = users) => {
+
+  /**
+   * Load initial dropdown options on component mount
+   */
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const loadInitialData = async () => {
+      try {
+        // Load categories
+        const categoriesResponse = await _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default()({
+          path: '/directorist/v1/listings/categories?hide_empty=true'
+        });
+        setDropdownOptions(prev => ({
+          ...prev,
+          categories: transformOptions(categoriesResponse)
+        }));
+
+        // Load users
+        const usersResponse = await _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default()({
+          path: (0,_wordpress_url__WEBPACK_IMPORTED_MODULE_2__.addQueryArgs)('/directorist/v1/users', {
+            custom: 'bulk_action'
+          })
+        });
+        setDropdownOptions(prev => ({
+          ...prev,
+          users: transformUserOptions(usersResponse)
+        }));
+
+        // Load directories and statuses from global data
+        if (window.dba_data?.allDirectoryTypes) {
+          setDropdownOptions(prev => ({
+            ...prev,
+            directories: transformOptions(window.dba_data.allDirectoryTypes)
+          }));
+        }
+        if (window.dba_data?.statuses) {
+          setDropdownOptions(prev => ({
+            ...prev,
+            statuses: transformStatusOptions(window.dba_data.statuses)
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+        setDeletionState(prev => ({
+          ...prev,
+          error: 'Failed to load filter options. Please refresh the page.'
+        }));
+      }
+    };
+    loadInitialData();
+  }, []);
+
+  /**
+   * Transform API data to dropdown options format
+   * @param {Array} data - Raw API data
+   * @returns {Array} Transformed options array
+   */
+  const transformOptions = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(data => {
+    if (!Array.isArray(data)) return [];
+    return data.map(item => ({
+      label: sanitizeText(`${item.name} - ${item.count}`),
+      value: sanitizeText(item.slug)
+    }));
+  }, []);
+
+  /**
+   * Transform user data to dropdown options format
+   * @param {Array} data - Raw user data
+   * @returns {Array} Transformed user options array
+   */
+  const transformUserOptions = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(data => {
+    if (!Array.isArray(data)) return [];
+    return data.map(user => ({
+      label: sanitizeText(user.name),
+      value: parseInt(user.id, 10) || 0
+    }));
+  }, []);
+
+  /**
+   * Transform status data to dropdown options format
+   * @param {Object} data - Raw status data
+   * @returns {Array} Transformed status options array
+   */
+  const transformStatusOptions = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(data => {
+    if (!data || typeof data !== 'object') return [];
+    return Object.entries(data).map(([key, label]) => ({
+      label: sanitizeText(label),
+      value: sanitizeText(key)
+    }));
+  }, []);
+
+  /**
+   * Sanitize text input to prevent XSS attacks
+   * @param {string} text - Text to sanitize
+   * @returns {string} Sanitized text
+   */
+  const sanitizeText = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(text => {
+    if (typeof text !== 'string') return '';
+    const textarea = document.createElement('textarea');
+    textarea.textContent = text;
+    return textarea.value;
+  }, []);
+
+  /**
+   * Get listing count based on current filters
+   * @param {Array} updatedCategory - Updated category filter
+   * @param {Array} updatedDirectory - Updated directory filter
+   * @param {Array} updatedStatus - Updated status filter
+   * @param {Array} updatedUsers - Updated users filter
+   */
+  const getListingCount = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(async (updatedCategory = filterOptions.category, updatedDirectory = filterOptions.directory, updatedStatus = filterOptions.status, updatedUsers = filterOptions.users) => {
     try {
+      // Validate API endpoint
+      if (!window.dba_data?.restUrl) {
+        throw new Error('API endpoint not configured');
+      }
       const response = await _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default()({
         path: `${window.dba_data.restUrl}/listing/count`,
         method: 'POST',
         data: {
-          category: updatedCategory,
-          directory_types: updatedDirectory,
-          status: updatedStatus,
-          users: updatedUsers
+          category: Array.isArray(updatedCategory) ? updatedCategory : [],
+          directory_types: Array.isArray(updatedDirectory) ? updatedDirectory : [],
+          status: Array.isArray(updatedStatus) ? updatedStatus : [],
+          users: Array.isArray(updatedUsers) ? updatedUsers : []
         }
       });
-      if (response && response.count !== undefined) {
-        setTotalListings(response.count);
+      if (response?.count !== undefined && typeof response.count === 'number') {
+        setTotalListings(Math.max(0, response.count));
       }
     } catch (error) {
-      console.error('API Error:', error);
+      console.error('Error fetching listing count:', error);
+      setDeletionState(prev => ({
+        ...prev,
+        error: 'Failed to fetch listing count. Please try again.'
+      }));
     }
-  };
-  function transformOptions(data) {
-    return data.map(item => ({
-      label: decodeHtmlEntities(item.name + " - " + item.count),
-      value: item.slug
-    }));
-  }
-  function transformUserOptions(data) {
-    return data.map(user => ({
-      label: decodeHtmlEntities(user.name),
-      value: user.id
-    }));
-  }
-  function transformStatusOptions(data) {
-    return Object.entries(data).map(([key, label]) => ({
-      label: label,
-      value: key
-    }));
-  }
-  function decodeHtmlEntities(text) {
-    const txt = document.createElement('textarea');
-    txt.innerHTML = text;
-    return txt.value;
-  }
-  const handleDelete = () => {
+  }, [filterOptions]);
+
+  /**
+   * Handle filter option changes
+   * @param {string} filterType - Type of filter being changed
+   * @param {Array} selectedValues - New selected values
+   */
+  const handleFilterChange = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((filterType, selectedValues) => {
+    const newFilterOptions = {
+      ...filterOptions,
+      [filterType]: Array.isArray(selectedValues) ? selectedValues : []
+    };
+    setFilterOptions(newFilterOptions);
+
+    // Update count with new filter values
+    getListingCount(newFilterOptions.category, newFilterOptions.directory, newFilterOptions.status, newFilterOptions.users);
+  }, [filterOptions, getListingCount]);
+
+  /**
+   * Show confirmation dialog before starting deletion
+   */
+  const handleDelete = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    // Validate that at least one filter is selected
+    const hasFilters = Object.values(filterOptions).some(filter => Array.isArray(filter) && filter.length > 0);
+    if (!hasFilters) {
+      sweetalert2__WEBPACK_IMPORTED_MODULE_10___default().fire({
+        title: 'No Filters Selected',
+        text: 'Please select at least one filter option before proceeding.',
+        icon: 'warning',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
     sweetalert2__WEBPACK_IMPORTED_MODULE_10___default().fire({
-      title: "Confirm deletion",
-      html: 'To proceed, please type <b>Delete</b>.',
+      title: "Confirm Deletion",
+      html: `To proceed, please type <b>${CONFIRMATION_TEXT}</b>.`,
       input: "text",
-      inputPlaceholder: "Delete",
+      inputPlaceholder: CONFIRMATION_TEXT,
       inputAttributes: {
         autocapitalize: "off",
-        autocorrect: "off"
+        autocorrect: "off",
+        maxlength: CONFIRMATION_TEXT.length
       },
       showCancelButton: true,
       confirmButtonText: "Delete",
       cancelButtonText: "Cancel",
+      confirmButtonColor: '#d33',
       focusConfirm: false,
       inputValidator: value => {
-        if ((value || "").trim() !== "Delete") {
-          return 'Please type "Delete" exactly to confirm.';
+        const trimmedValue = (value || "").trim();
+        if (trimmedValue !== CONFIRMATION_TEXT) {
+          return `Please type "${CONFIRMATION_TEXT}" exactly to confirm.`;
         }
-        return undefined; // valid
+        return null;
       }
     }).then(result => {
       if (result.isConfirmed) {
-        // Only reaches here if the input matched "Delete"
-        startDelete();
+        startDeletion();
       }
     });
-  };
-  const startDelete = () => {
-    setUpdating(true);
-    setCompleted(false);
-    setTotalUpdated(0);
-    setMissingAddress(0);
-    setOffset(0);
-    setProgress(0);
-    setLog([]);
-    setShowError('');
+  }, [filterOptions]);
+
+  /**
+   * Start the bulk deletion process
+   */
+  const startDeletion = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    // Reset deletion state
+    setDeletionState({
+      offset: 0,
+      totalDeleted: 0,
+      totalFailed: 0,
+      isDeleting: true,
+      progress: 0,
+      isCompleted: false,
+      error: '',
+      log: []
+    });
     let currentOffset = 0;
-    let allUpdated = 0;
-    const runBatch = async () => {
+    let allDeleted = 0;
+
+    /**
+     * Process deletion in batches
+     */
+    const processBatch = async () => {
       try {
         const response = await _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default()({
           path: `${window.dba_data.restUrl}/delete/listings`,
           method: 'POST',
           data: {
             offset: currentOffset,
-            limit: limit,
-            category: category,
-            directory_types: directory,
-            status: status,
-            users: users,
-            type: deleteType,
-            metas: deleteMetas,
-            media: deleteMedia
+            limit: BATCH_LIMIT,
+            category: filterOptions.category,
+            directory_types: filterOptions.directory,
+            status: filterOptions.status,
+            users: filterOptions.users,
+            type: deletionConfig.type,
+            metas: deletionConfig.metas,
+            media: deletionConfig.media
           }
         });
-        if (response.status == 'error') {
-          setShowError(response.message);
-          setUpdating(false);
+
+        // Handle API errors
+        if (response?.status === 'error') {
+          setDeletionState(prev => ({
+            ...prev,
+            error: response.message || 'An error occurred during deletion',
+            isDeleting: false
+          }));
           return;
         }
-        if (response.status == 'completed') {
-          setCompleted(true);
-          setUpdating(false);
+
+        // Handle completion
+        if (response?.status === 'completed') {
+          setDeletionState(prev => ({
+            ...prev,
+            isCompleted: true,
+            isDeleting: false
+          }));
           return;
         }
-        const postsCount = response.posts?.length || 0;
-        const deletedCount = response.deleted?.length || 0;
-        const curMissAdrs = postsCount - deletedCount;
-        setLog(prev => [...prev, `Batch ${currentOffset / limit}: ${deletedCount}/${postsCount} deleted.`]);
+        const postsCount = response?.posts?.length || 0;
+        const deletedCount = response?.deleted?.length || 0;
+        const failedCount = postsCount - deletedCount;
+
+        // Update log
+        setDeletionState(prev => ({
+          ...prev,
+          log: [...prev.log, `Batch ${Math.floor(currentOffset / BATCH_LIMIT) + 1}: ${deletedCount}/${postsCount} deleted.`]
+        }));
+
+        // Check if no more posts to process
         if (postsCount === 0) {
-          setCompleted(true);
-          setUpdating(false);
+          setDeletionState(prev => ({
+            ...prev,
+            isCompleted: true,
+            isDeleting: false
+          }));
           return;
         }
+
+        // Update counters
         allUpdated += deletedCount;
-        setTotalUpdated(allUpdated);
-        currentOffset += limit;
-        setOffset(prev => prev + limit);
-        setProgress(prev => prev + progressNumber);
-        setMissingAddress(prev => prev + curMissAdrs);
+        currentOffset += BATCH_LIMIT;
+        setDeletionState(prev => ({
+          ...prev,
+          totalDeleted: allUpdated,
+          totalFailed: prev.totalFailed + failedCount,
+          offset: currentOffset,
+          progress: Math.min(100, prev.progress + progressIncrement)
+        }));
 
         // Continue to next batch
-        runBatch();
+        processBatch();
       } catch (error) {
-        console.error('API Error:', error);
-        setLog(prev => [...prev, `Error at offset ${currentOffset}`]);
-        setUpdating(false);
+        console.error('Batch processing error:', error);
+        setDeletionState(prev => ({
+          ...prev,
+          log: [...prev.log, `Error at offset ${currentOffset}: ${error.message}`],
+          isDeleting: false
+        }));
       }
     };
-    runBatch();
-  };
+    processBatch();
+  }, [filterOptions, deletionConfig, progressIncrement]);
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
     className: "coordinators-wrapper all-import-wrapper",
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("h3", {
@@ -16046,79 +16240,87 @@ const DeleteListings = () => {
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
       className: "note",
       children: "Please select the options to delete the listings in your website."
-    }), showError && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
+    }), deletionState.error && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
       className: "error",
-      children: showError
+      role: "alert",
+      children: deletionState.error
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
       className: "delete-fields",
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DirectoryTypes__WEBPACK_IMPORTED_MODULE_7__["default"], {
-        options: directoryOptions,
-        onChange: selected => {
-          setDirectory(selected);
-          getListingCount(category, selected, status, users);
-        }
+        options: dropdownOptions.directories,
+        onChange: selected => handleFilterChange('directory', selected)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_CategorySelect__WEBPACK_IMPORTED_MODULE_6__["default"], {
-        options: categoryOptions,
-        onChange: selected => {
-          setCategory(selected);
-          getListingCount(selected, directory, status, users);
-        }
+        options: dropdownOptions.categories,
+        onChange: selected => handleFilterChange('category', selected)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_StatusSelect__WEBPACK_IMPORTED_MODULE_8__["default"], {
-        options: statusOptions,
-        onChange: selected => {
-          setStatus(selected);
-          getListingCount(category, directory, selected, users);
-        }
+        options: dropdownOptions.statuses,
+        onChange: selected => handleFilterChange('status', selected)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_UserSelect__WEBPACK_IMPORTED_MODULE_9__["default"], {
-        options: userOptions,
-        onChange: selected => {
-          setUsers(selected);
-          getListingCount(category, directory, status, selected);
-        }
+        options: dropdownOptions.users,
+        onChange: selected => handleFilterChange('users', selected)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DeleteTypeSelector__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        onChange: value => setDeleteType(value)
+        onChange: value => setDeletionConfig(prev => ({
+          ...prev,
+          type: value
+        }))
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DeleteMediaOptions__WEBPACK_IMPORTED_MODULE_4__["default"], {
-        onChange: selected => setDeleteMedia(selected)
+        onChange: selected => setDeletionConfig(prev => ({
+          ...prev,
+          media: selected
+        }))
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DeleteMetasField__WEBPACK_IMPORTED_MODULE_5__["default"], {
-        onChange: data => setDeleteMetas(data)
-      }), totalListings && totalListings > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("p", {
+        onChange: data => setDeletionConfig(prev => ({
+          ...prev,
+          metas: data
+        }))
+      }), totalListings !== null && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("p", {
         className: "error",
-        children: ["Total Listings to be Deleted: ", totalListings]
+        children: ["Total Listings to be Deleted: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
+          children: totalListings
+        })]
       })]
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("button", {
-      className: "update-coordinates",
+      className: "update-coordinates delete-listings",
       onClick: handleDelete,
-      disabled: updating,
-      children: updating ? 'Deleting ..' : 'Start Delete'
-    }), progress > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
+      disabled: deletionState.isDeleting || totalListings < 1,
+      type: "button",
+      "aria-label": deletionState.isDeleting ? 'Deleting listings...' : 'Start deletion process',
+      children: deletionState.isDeleting ? 'Deleting...' : 'Start Delete'
+    }), deletionState.progress > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
       className: "progress-bar",
+      role: "progressbar",
+      "aria-valuenow": deletionState.progress,
+      "aria-valuemin": "0",
+      "aria-valuemax": "100",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
         className: "progress-bar-fill",
         style: {
-          width: `${progress}%`
+          width: `${Math.min(100, deletionState.progress)}%`
         }
       })
-    }), totalUpdated > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("p", {
+    }), deletionState.totalDeleted > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("p", {
       className: "coordinator-status",
       children: ["Total Deleted: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
-        children: totalUpdated
+        children: deletionState.totalDeleted
       })]
-    }), missingAddress > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("p", {
+    }), deletionState.totalFailed > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("p", {
       className: "coordinator-status",
       children: ["Total Failed: ", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("strong", {
-        children: missingAddress
+        children: deletionState.totalFailed
       })]
-    }), completed && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
+    }), deletionState.isCompleted && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("p", {
       className: "coordinator-status",
       style: {
         color: 'green'
       },
       children: "\u2705 All listings processed!"
-    }), log.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
+    }), deletionState.log.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
       className: "coordinator-log",
-      children: [...log].reverse().map((entry, i) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
+      role: "log",
+      "aria-live": "polite",
+      children: [...deletionState.log].reverse().map((entry, index) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
         children: ["- ", entry]
-      }, i))
+      }, index))
     })]
   });
 };
