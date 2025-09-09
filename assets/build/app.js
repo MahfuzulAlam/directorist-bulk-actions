@@ -15761,7 +15761,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const App = () => {
-  const [activeTab, setActiveTab] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('update_listings');
+  const [activeTab, setActiveTab] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('delete_listings');
   const tabs = [{
     key: 'update_listings',
     label: 'Update Listings'
@@ -15881,6 +15881,7 @@ const DeleteListings = () => {
   const [directoryOptions, setDirectoryOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [statusOptions, setStatusOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [userOptions, setUserOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [totalListings, setTotalListings] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
   const [deleteType, setDeleteType] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('trash');
   const [deleteMedia, setDeleteMedia] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [deleteMetas, setDeleteMetas] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
@@ -15890,6 +15891,9 @@ const DeleteListings = () => {
   const [users, setUsers] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const limit = 5;
   const progressNumber = 5 / dba_data.totalListings * 100;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    setTotalListings(window.dba_data.totalListings);
+  }, []);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default()({
       path: '/directorist/v1/listings/categories?hide_empty=true'
@@ -15902,6 +15906,25 @@ const DeleteListings = () => {
     setDirectoryOptions(transformOptions(window.dba_data.allDirectoryTypes));
     setStatusOptions(transformStatusOptions(window.dba_data.statuses));
   }, []);
+  const getListingCount = async (updatedCategory = category, updatedDirectory = directory, updatedStatus = status, updatedUsers = users) => {
+    try {
+      const response = await _wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default()({
+        path: `${window.dba_data.restUrl}/listing/count`,
+        method: 'POST',
+        data: {
+          category: updatedCategory,
+          directory_types: updatedDirectory,
+          status: updatedStatus,
+          users: updatedUsers
+        }
+      });
+      if (response && response.count !== undefined) {
+        setTotalListings(response.count);
+      }
+    } catch (error) {
+      console.error('API Error:', error);
+    }
+  };
   function transformOptions(data) {
     return data.map(item => ({
       label: decodeHtmlEntities(item.name + " - " + item.count),
@@ -16030,22 +16053,37 @@ const DeleteListings = () => {
       className: "delete-fields",
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DirectoryTypes__WEBPACK_IMPORTED_MODULE_7__["default"], {
         options: directoryOptions,
-        onChange: selected => setDirectory(selected)
+        onChange: selected => {
+          setDirectory(selected);
+          getListingCount(category, selected, status, users);
+        }
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_CategorySelect__WEBPACK_IMPORTED_MODULE_6__["default"], {
         options: categoryOptions,
-        onChange: selected => setCategory(selected)
+        onChange: selected => {
+          setCategory(selected);
+          getListingCount(selected, directory, status, users);
+        }
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_StatusSelect__WEBPACK_IMPORTED_MODULE_8__["default"], {
         options: statusOptions,
-        onChange: selected => setStatus(selected)
+        onChange: selected => {
+          setStatus(selected);
+          getListingCount(category, directory, selected, users);
+        }
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_UserSelect__WEBPACK_IMPORTED_MODULE_9__["default"], {
         options: userOptions,
-        onChange: selected => setUsers(selected)
+        onChange: selected => {
+          setUsers(selected);
+          getListingCount(category, directory, status, selected);
+        }
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DeleteTypeSelector__WEBPACK_IMPORTED_MODULE_3__["default"], {
         onChange: value => setDeleteType(value)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DeleteMediaOptions__WEBPACK_IMPORTED_MODULE_4__["default"], {
         onChange: selected => setDeleteMedia(selected)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_fields_DeleteMetasField__WEBPACK_IMPORTED_MODULE_5__["default"], {
         onChange: data => setDeleteMetas(data)
+      }), totalListings && totalListings > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("p", {
+        className: "error",
+        children: ["Total Listings to be Deleted: ", totalListings]
       })]
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("button", {
       className: "update-coordinates",

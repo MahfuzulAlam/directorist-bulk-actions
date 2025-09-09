@@ -4,7 +4,7 @@
  * Plugin Name: Directorist - Bulk Actions
  * Plugin URI: https://github.com/MahfuzulAlam/directorist-bulk-actions
  * Description: A plugin that provides bulk actions for the Directorist plugin, enabling users to perform operations such as bulk import/export of taxonomies, deleting listings, deleting taxonomies, updating listing fields, and more.
- * Version: 2.0.3
+ * Version: 2.0.4
  * Author: Mahfuz
  * Author URI: https://github.com/MahfuzulAlam/
  * License: GPL-2.0+
@@ -31,7 +31,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         /**
          * Plugin Version
          */
-        private $version = '2.0.3';
+        private $version = '2.0.4';
 
         /**
          * Instance
@@ -83,6 +83,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-update-listings.php');
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-run-update.php');
             include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-delete-listings.php');
+            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-listing-count.php');
         }
 
         /**
@@ -186,7 +187,7 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         {
             $posts = get_posts([
                 'post_type'      => ATBDP_POST_TYPE,
-                'post_status'    => ['publish', 'private', 'draft'],
+                'post_status'    => $this->get_statuses('keys'),
                 'numberposts'    => -1,
                 'fields'         => 'ids',
             ]);
@@ -216,10 +217,13 @@ if (!class_exists('Directorist_Bulk_Actions')) {
         /**
          * Get Statuses
          */
-        public function get_statuses()
+        public function get_statuses( $data = 'all' )
         {
             $statuses = get_post_statuses();
             $statuses['expired'] = 'Expired';
+            if( $data == 'keys' ){
+                $statuses = array_keys( $statuses );
+            }
             return $statuses;
         }
     }

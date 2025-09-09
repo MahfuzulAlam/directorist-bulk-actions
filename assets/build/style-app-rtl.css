@@ -379,6 +379,10 @@
     gap: 8px;
 }
 
+.bulk-delete-total {
+    font-weight: 700;
+}
+
 .checkbox-option,
 .radio-option {
     display: inline-flex;

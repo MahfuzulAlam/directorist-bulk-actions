@@ -24,6 +24,7 @@ const DeleteListings = () => {
   const [directoryOptions, setDirectoryOptions] = useState([]);
   const [statusOptions, setStatusOptions] = useState([]);
   const [userOptions, setUserOptions] = useState([]);
+  const [totalListings, setTotalListings] = useState(0);
 
   const [deleteType, setDeleteType] = useState('trash');
   const [deleteMedia, setDeleteMedia] = useState([]);
@@ -35,6 +36,10 @@ const DeleteListings = () => {
 
   const limit = 5;
   const progressNumber = (5 / dba_data.totalListings) * 100;
+
+  useEffect(()=>{
+    setTotalListings(window.dba_data.totalListings);
+  }, []);
 
   useEffect(() => {
     apiFetch({ path: '/directorist/v1/listings/categories?hide_empty=true' })
@@ -48,6 +53,26 @@ const DeleteListings = () => {
     setDirectoryOptions(transformOptions(window.dba_data.allDirectoryTypes));
     setStatusOptions(transformStatusOptions(window.dba_data.statuses));
   }, []);
+
+  const getListingCount = async (updatedCategory = category, updatedDirectory = directory, updatedStatus = status, updatedUsers = users) => {
+    try {
+      const response = await apiFetch({
+        path: `${window.dba_data.restUrl}/listing/count`,
+        method: 'POST',
+        data: {
+          category: updatedCategory,
+          directory_types: updatedDirectory,
+          status: updatedStatus,
+          users: updatedUsers,
+        }
+      });
+      if (response && response.count !== undefined) {
+        setTotalListings(response.count);
+      }
+    } catch (error) {
+      console.error('API Error:', error);
+    }
+  }
 
   function transformOptions(data) {
     return data.map(item => ({
@@ -189,23 +214,24 @@ const handleDelete = () => {
       <div className="delete-fields">
         <DirectoryTypes
           options={directoryOptions}
-          onChange={(selected) => setDirectory(selected)}
+          onChange={(selected) => {setDirectory(selected); getListingCount(category, selected, status, users)}}
         />
         <CategorySelect
           options={categoryOptions}
-          onChange={(selected) => setCategory(selected)}
+          onChange={(selected) => {setCategory(selected); getListingCount(selected, directory, status, users)}}
         />
         <StatusSelect
           options={statusOptions}
-          onChange={(selected) => setStatus(selected)}
+          onChange={(selected) => {setStatus(selected); getListingCount(category, directory, selected, users)}}
         />
         <UserSelect
           options={userOptions}
-          onChange={(selected) => setUsers(selected)}
+          onChange={(selected) => {setUsers(selected); getListingCount(category, directory, status, selected)}}
         />
         <DeleteTypeSelector onChange={(value) => setDeleteType(value)} />
         <DeleteMediaOptions onChange={(selected) => setDeleteMedia(selected)} />
         <DeleteMetasField onChange={(data) => setDeleteMetas(data)} />
+        { totalListings && totalListings > 0 && <p className="error">Total Listings to be Deleted: {totalListings}</p> }
       </div>
 
       <button
