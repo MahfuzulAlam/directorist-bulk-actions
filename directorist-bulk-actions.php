@@ -2,11 +2,11 @@
 
 /**
  * Plugin Name: Directorist - Bulk Actions
- * Plugin URI: https://github.com/MahfuzulAlam/directorist-bulk-actions
- * Description: A plugin that provides bulk actions for the Directorist plugin, enabling users to perform operations such as bulk import/export of taxonomies, deleting listings, deleting taxonomies, updating listing fields, and more.
- * Version: 2.0.4
- * Author: Mahfuz
- * Author URI: https://github.com/MahfuzulAlam/
+ * Plugin URI: https://wpxplorer.com/tools/directorist-bulk-actions
+ * Description: Bulk tools for Directorist to import/export, clean up, and update listings at scale.
+ * Version: 2.0.5
+ * Author: wpXplore
+ * Author URI: https://wpxplore.com
  * License: GPL-2.0+
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: directorist-bulk-actions
@@ -15,248 +15,59 @@
  * @package Directorist_Bulk_Actions
  */
 
-// prevent direct access to the file
-defined('ABSPATH') || die('No direct script access allowed!');
+if (!defined('ABSPATH')) {
+    exit;
+}
 
+$plugin_file = __FILE__;
 
-if (!class_exists('Directorist_Bulk_Actions')) {
+if (!defined('DIRECTORIST_BULK_ACTIONS_FILE')) {
+    define('DIRECTORIST_BULK_ACTIONS_FILE', $plugin_file);
+}
 
-    final class Directorist_Bulk_Actions
+$composer_autoload = __DIR__ . '/vendor/autoload.php';
+$using_composer    = false;
+
+if (is_readable($composer_autoload)) {
+    require_once $composer_autoload;
+    $using_composer = true;
+}
+
+if (!defined('DIRECTORIST_BULK_ACTIONS_USING_COMPOSER')) {
+    define('DIRECTORIST_BULK_ACTIONS_USING_COMPOSER', $using_composer);
+}
+
+if (!class_exists(\Directorist\BulkActions\Plugin::class)) {
+    require_once __DIR__ . '/inc/Plugin.php';
+}
+
+use Directorist\BulkActions\Plugin;
+
+if (!function_exists('directorist_is_plugin_active')) {
+    function directorist_is_plugin_active($plugin)
     {
-        /**
-         * Instance
-         */
-        private static $instance;
-
-        /**
-         * Plugin Version
-         */
-        private $version = '2.0.4';
-
-        /**
-         * Instance
-         */
-        public static function instance()
-        {
-            if (!isset(self::$instance) && !(self::$instance instanceof Directorist_Bulk_Actions)) {
-                self::$instance = new Directorist_Bulk_Actions;
-                self::$instance->init();
-            }
-            return self::$instance;
-        }
-
-        /**
-         * Init
-         */
-        public function init()
-        {
-            $this->define_constant();
-            $this->includes();
-            $this->enqueues();
-            $this->hooks();
-        }
-
-        /**
-         * Define
-         */
-        public function define_constant()
-        {
-            if (!defined('DIRECTORIST_BULK_ACTIONS_URI')) {
-                define('DIRECTORIST_BULK_ACTIONS_URI', plugin_dir_url(__FILE__));
-            }
-
-            if (!defined('DIRECTORIST_BULK_ACTIONS_DIR')) {
-                define('DIRECTORIST_BULK_ACTIONS_DIR', plugin_dir_path(__FILE__));
-            }
-        }
-
-        /**
-         * Included Files
-         */
-        public function includes()
-        {
-            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/functions.php');
-            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-admin-page.php');
-            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-update-coordinates.php');
-            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-taxonomy-export.php');
-            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-taxonomy-import.php');
-            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-update-listings.php');
-            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-run-update.php');
-            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-delete-listings.php');
-            include_once(DIRECTORIST_BULK_ACTIONS_DIR . '/inc/class-listing-count.php');
-        }
-
-        /**
-         * Enqueues
-         */
-        public function enqueues()
-        {
-            add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
-            add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
-        }
-
-        /**
-         * Hooks
-         */
-        public function hooks()
-        {
-            add_filter('directorist_template', array($this, 'directorist_template'), 10, 2);
-        }
-
-        /**
-         *  Enqueue JS file
-         */
-        public function enqueue_admin_scripts()
-        {
-            $assets  = include DIRECTORIST_BULK_ACTIONS_DIR . 'assets/build/app.asset.php';
-
-            wp_enqueue_script(
-                'dba-admin-script',
-                DIRECTORIST_BULK_ACTIONS_URI . 'assets/build/app.js',
-                $assets['dependencies'], // ensures React from WP core is loaded
-                $assets['version'],
-                true
-            );
-
-            wp_localize_script('dba-admin-script', 'dba_data', [
-                'totalListings' => $this->total_listings(),
-                'directoryTypes' => $this->get_directory_types(),
-                'statuses' => $this->get_statuses(),
-                'allDirectoryTypes' => $this->get_directory_types('all'),
-                'restUrl'       => 'directorist_bulk_actions/v1',
-            ]);
-        }
-
-        /**
-         *  Enqueue CSS file
-         */
-        public function enqueue_admin_styles()
-        {
-            $css_file = 'assets/build/style-app.css';
-            $css_path = DIRECTORIST_BULK_ACTIONS_DIR . $css_file;
-            $css_ver  = file_exists( $css_path ) ? filemtime( $css_path ) : $this->version;
-            wp_enqueue_style('dba-admin-style', DIRECTORIST_BULK_ACTIONS_URI . $css_file, [], $css_ver);
-        }
-
-        /**
-         * Template Exists
-         */
-        public function template_exists($template_file)
-        {
-            $file = DIRECTORIST_BULK_ACTIONS_DIR . '/templates/' . $template_file . '.php';
-
-            if (file_exists($file)) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        /**
-         * Get Template
-         */
-        public function get_template($template_file, $args = array())
-        {
-            if (is_array($args)) {
-                extract($args);
-            }
-            $data = $args;
-
-            if (isset($args['form'])) $listing_form = $args['form'];
-
-            $file = DIRECTORIST_BULK_ACTIONS_DIR . '/templates/' . $template_file . '.php';
-
-            if ($this->template_exists($template_file)) {
-                include $file;
-            }
-        }
-
-        /**
-         * Directorist Template
-         */
-        public function directorist_template($template, $field_data)
-        {
-            if ($this->template_exists($template)) $template = $this->get_template($template, $field_data);
-            return $template;
-        }
-
-        /**
-         * Total number of the listings
-         */
-        public function total_listings()
-        {
-            $posts = get_posts([
-                'post_type'      => ATBDP_POST_TYPE,
-                'post_status'    => $this->get_statuses('keys'),
-                'numberposts'    => -1,
-                'fields'         => 'ids',
-            ]);
-
-            return $posts ? count($posts) : 0;
-        }
-
-        /**
-         * Get Directory Types
-         */
-        public function get_directory_types( $info = '' )
-        {
-            $directory_types = [];
-            $directories =  directorist_get_directories();
-            if (count($directories) > 0) {
-                foreach ($directories as $directory) {
-                    if( $info == 'all' ){
-                        $directory_types[] = $directory;
-                    }else{
-                        $directory_types[$directory->term_id] = $directory->name;
-                    }
-                }
-            }
-            return $directory_types;
-        }
-
-        /**
-         * Get Statuses
-         */
-        public function get_statuses( $data = 'all' )
-        {
-            $statuses = get_post_statuses();
-            $statuses['expired'] = 'Expired';
-            if( $data == 'keys' ){
-                $statuses = array_keys( $statuses );
-            }
-            return $statuses;
-        }
+        return in_array($plugin, (array) get_option('active_plugins', []), true) || directorist_is_plugin_active_for_network($plugin);
     }
+}
 
-    if (!function_exists('directorist_is_plugin_active')) {
-        function directorist_is_plugin_active($plugin)
-        {
-            return in_array($plugin, (array) get_option('active_plugins', array()), true) || directorist_is_plugin_active_for_network($plugin);
-        }
-    }
-
-    if (!function_exists('directorist_is_plugin_active_for_network')) {
-        function directorist_is_plugin_active_for_network($plugin)
-        {
-            if (!is_multisite()) {
-                return false;
-            }
-
-            $plugins = get_site_option('active_sitewide_plugins');
-            if (isset($plugins[$plugin])) {
-                return true;
-            }
-
+if (!function_exists('directorist_is_plugin_active_for_network')) {
+    function directorist_is_plugin_active_for_network($plugin)
+    {
+        if (!is_multisite()) {
             return false;
         }
-    }
 
-    function Directorist_Bulk_Actions()
-    {
-        return Directorist_Bulk_Actions::instance();
-    }
+        $plugins = get_site_option('active_sitewide_plugins');
 
-    if (directorist_is_plugin_active('directorist/directorist-base.php')) {
-        Directorist_Bulk_Actions(); // get the plugin running
+        return isset($plugins[$plugin]);
     }
+}
+
+function Directorist_Bulk_Actions(): Plugin
+{
+    return Plugin::instance();
+}
+
+if (directorist_is_plugin_active('directorist/directorist-base.php')) {
+    Directorist_Bulk_Actions();
 }
