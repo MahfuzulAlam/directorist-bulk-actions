@@ -25,7 +25,7 @@ final class Plugin
     /**
      * Plugin version string for assets.
      */
-    private string $version = '2.0.4';
+    private string $version = '2.1.0';
 
     /**
      * Bootstrapped service classes.

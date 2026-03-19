@@ -4,7 +4,7 @@
  * Plugin Name: Directorist - Bulk Actions
  * Plugin URI: https://wpxplorer.com/tools/directorist-bulk-actions
  * Description: Bulk tools for Directorist to import/export, clean up, and update listings at scale.
- * Version: 2.0.5
+ * Version: 2.1.0
  * Author: wpXplore
  * Author URI: https://wpxplore.com
  * License: GPL-2.0+
