@@ -15761,7 +15761,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const App = () => {
-  const [activeTab, setActiveTab] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('delete_listings');
+  const [activeTab, setActiveTab] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('update_listings');
   const tabs = [{
     key: 'update_listings',
     label: 'Update Listings'

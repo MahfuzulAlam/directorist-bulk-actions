@@ -4,7 +4,7 @@ import Tabs from './components';
 import './style.css';
 
 const App = () => {
-    const [activeTab, setActiveTab] = useState('delete_listings');
+    const [activeTab, setActiveTab] = useState('update_listings');
 
     const tabs = [
         { key: 'update_listings', label: 'Update Listings' },
