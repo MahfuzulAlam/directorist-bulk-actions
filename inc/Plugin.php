@@ -25,7 +25,7 @@ final class Plugin
     /**
      * Plugin version string for assets.
      */
-    private string $version = '2.1.0';
+    private string $version = '2.1.1';
 
     /**
      * Bootstrapped service classes.
@@ -194,6 +194,7 @@ final class Plugin
         if ($directories && count($directories) > 0) {
             foreach ($directories as $directory) {
                 if ('all' === $info) {
+                    $directory->count = $this->get_term_count_all_statuses( $directory->term_id, ATBDP_DIRECTORY_TYPE );
                     $directory_types[] = $directory;
                 } else {
                     $directory_types[$directory->term_id] = $directory->name;
@@ -217,5 +218,23 @@ final class Plugin
         }
 
         return $statuses;
+    }
+
+    public function get_term_count_all_statuses( $term_id, $taxonomy, $post_type = 'at_biz_dir' ) {
+
+        global $wpdb;
+    
+        $count = $wpdb->get_var( $wpdb->prepare("
+            SELECT COUNT( DISTINCT p.ID )
+            FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->term_relationships} tr ON p.ID = tr.object_id
+            INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+            WHERE tt.term_id = %d
+              AND tt.taxonomy = %s
+              AND p.post_type = %s
+              AND p.post_status != 'trash'
+        ", $term_id, $taxonomy, $post_type ) );
+    
+        return (int) $count;
     }
 }

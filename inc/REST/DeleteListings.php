@@ -151,7 +151,10 @@ class DeleteListings
     {
         $result = wp_trash_post($listing_id);
 
-        return !is_wp_error($result);
+        // wp_trash_post() returns the post object on success, false on failure.
+        // It never returns a WP_Error, so checking is_wp_error() alone would
+        // always evaluate to true — including when trashing actually failed.
+        return false !== $result;
     }
 
     public function delete_listing_permanently($listing_id, $meta_delete = false): bool

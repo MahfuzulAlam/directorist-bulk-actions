@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import apiFetch from '@wordpress/api-fetch';
 import { addQueryArgs } from '@wordpress/url';
 import DeleteTypeSelector from './fields/DeleteTypeSelector';
@@ -60,12 +60,6 @@ const DeleteListings = () => {
 
   // State for listing count
   const [totalListings, setTotalListings] = useState(0);
-
-  // Memoized progress calculation
-  const progressIncrement = useMemo(() => {
-    const totalListingsCount = window.dba_data?.totalListings || 1;
-    return (BATCH_LIMIT / totalListingsCount) * 100;
-  }, []);
 
   /**
    * Initialize component with default total listings count
@@ -254,15 +248,15 @@ const DeleteListings = () => {
       Array.isArray(filter) && filter.length > 0
     );
 
-    if (!hasFilters) {
-      Swal.fire({
-        title: 'No Filters Selected',
-        text: 'Please select at least one filter option before proceeding.',
-        icon: 'warning',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
+    // if (!hasFilters) {
+    //   Swal.fire({
+    //     title: 'No Filters Selected',
+    //     text: 'Please select at least one filter option before proceeding.',
+    //     icon: 'warning',
+    //     confirmButtonText: 'OK'
+    //   });
+    //   return;
+    // }
 
     Swal.fire({
       title: "Confirm Deletion",
@@ -297,6 +291,12 @@ const DeleteListings = () => {
    * Start the bulk deletion process
    */
   const startDeletion = useCallback(() => {
+    // Capture the current filtered count for accurate progress tracking.
+    // totalListings is read here (closure) so the progress bar reflects the
+    // actual number of listings that will be deleted, not the site-wide total.
+    const filteredTotal = Math.max(totalListings, 1);
+    const batchProgressStep = (BATCH_LIMIT / filteredTotal) * 100;
+
     // Reset deletion state
     setDeletionState({
       offset: 0,
@@ -309,11 +309,17 @@ const DeleteListings = () => {
       log: []
     });
 
-    let currentOffset = 0;
+    let batchNumber = 0;
     let allDeleted = 0;
 
     /**
-     * Process deletion in batches
+     * Process deletion in batches.
+     *
+     * IMPORTANT: offset is always 0 for every request.
+     * Unlike update operations (SetCoordinates, RunListingUpdate), deletions
+     * remove posts from the database. After each batch the remaining posts
+     * shift to position 0 in the query result, so sending offset > 0 on the
+     * next call would skip over those posts and terminate too early.
      */
     const processBatch = async () => {
       try {
@@ -321,7 +327,7 @@ const DeleteListings = () => {
           path: `${window.dba_data.restUrl}/delete/listings`,
           method: 'POST',
           data: {
-            offset: currentOffset,
+            offset: 0,
             limit: BATCH_LIMIT,
             category: filterOptions.category,
             directory_types: filterOptions.directory,
@@ -343,7 +349,7 @@ const DeleteListings = () => {
           return;
         }
 
-        // Handle completion
+        // Handle server-reported completion
         if (response?.status === 'completed') {
           setDeletionState(prev => ({
             ...prev,
@@ -357,13 +363,15 @@ const DeleteListings = () => {
         const deletedCount = response?.deleted?.length || 0;
         const failedCount = postsCount - deletedCount;
 
+        batchNumber += 1;
+
         // Update log
         setDeletionState(prev => ({
           ...prev,
-          log: [...prev.log, `Batch ${Math.floor(currentOffset / BATCH_LIMIT) + 1}: ${deletedCount}/${postsCount} deleted.`]
+          log: [...prev.log, `Batch ${batchNumber}: ${deletedCount}/${postsCount} deleted.`]
         }));
 
-        // Check if no more posts to process
+        // No more posts match the filters — all done
         if (postsCount === 0) {
           setDeletionState(prev => ({
             ...prev,
@@ -374,15 +382,13 @@ const DeleteListings = () => {
         }
 
         // Update counters
-        allUpdated += deletedCount;
-        currentOffset += BATCH_LIMIT;
+        allDeleted += deletedCount;
 
         setDeletionState(prev => ({
           ...prev,
-          totalDeleted: allUpdated,
+          totalDeleted: allDeleted,
           totalFailed: prev.totalFailed + failedCount,
-          offset: currentOffset,
-          progress: Math.min(100, prev.progress + progressIncrement)
+          progress: Math.min(100, prev.progress + batchProgressStep)
         }));
 
         // Continue to next batch
@@ -392,14 +398,14 @@ const DeleteListings = () => {
         console.error('Batch processing error:', error);
         setDeletionState(prev => ({
           ...prev,
-          log: [...prev.log, `Error at offset ${currentOffset}: ${error.message}`],
+          log: [...prev.log, `Error in batch ${batchNumber + 1}: ${error.message}`],
           isDeleting: false
         }));
       }
     };
 
     processBatch();
-  }, [filterOptions, deletionConfig, progressIncrement]);
+  }, [filterOptions, deletionConfig, totalListings]);
 
   return (
     <div className="coordinators-wrapper all-import-wrapper">
@@ -487,7 +493,7 @@ const DeleteListings = () => {
       
       {deletionState.isCompleted && (
         <p className="coordinator-status" style={{ color: 'green' }}>
-          ✅ All listings processed!
+          ✅ All listings deleted!
         </p>
       )}
 
