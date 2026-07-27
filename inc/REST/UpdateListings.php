@@ -39,6 +39,10 @@ class UpdateListings
             return new WP_REST_Response(['error' => 'Invalid or missing directory type'], 400);
         }
 
+        if (empty($items) || !is_array($items)) {
+            return new WP_REST_Response(['error' => 'Invalid or missing items'], 400);
+        }
+
         $results = [];
 
         foreach ($items as $item) {
@@ -70,7 +74,7 @@ class UpdateListings
                 'ID'           => $post_id,
                 'post_title'   => isset($item['listing_title']) ? sanitize_text_field($item['listing_title']) : $existing->post_title,
                 'post_content' => isset($item['listing_content']) ? wp_kses_post($item['listing_content']) : $existing->post_content,
-                'post_date'    => isset($item['publish_date']) ? format_csv_date_to_wp($item['publish_date']) : $existing->post_date,
+                'post_date'    => (isset($item['publish_date']) ? format_csv_date_to_wp($item['publish_date']) : null) ?? $existing->post_date,
                 'tax_input'    => $tax_input,
                 'meta_input'   => $meta_input,
             ];

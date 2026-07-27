@@ -13,7 +13,7 @@ const RunListingUpdate = () => {
   const [log, setLog] = useState([]);
 
   const limit = 5;
-  const progressNumber = (5 / dba_data.totalListings) * 100;
+  const progressNumber = (limit / Math.max(window.dba_data?.totalListings || 0, 1)) * 100;
 
   const updateCoordinates = () => {
 

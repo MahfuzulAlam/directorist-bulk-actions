@@ -44,6 +44,10 @@ class TaxonomyImport
             );
         }
 
+        if (empty($items) || !is_array($items)) {
+            return new WP_REST_Response(['error' => 'Invalid or missing items'], 400);
+        }
+
         switch ($taxonomy_slug) {
             case 'location':
                 $taxonomy = ATBDP_LOCATION;
@@ -209,6 +213,6 @@ class TaxonomyImport
             }
         }
 
-        return '';
+        return 0;
     }
 }

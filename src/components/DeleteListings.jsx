@@ -381,6 +381,17 @@ const DeleteListings = () => {
           return;
         }
 
+        // Nothing was deleted in this batch. With offset always 0 the same
+        // posts would be returned again, so bail out instead of looping forever.
+        if (deletedCount === 0) {
+          setDeletionState(prev => ({
+            ...prev,
+            error: `Deletion stalled: ${postsCount} listing(s) could not be deleted. Please check the server logs.`,
+            isDeleting: false
+          }));
+          return;
+        }
+
         // Update counters
         allDeleted += deletedCount;
 

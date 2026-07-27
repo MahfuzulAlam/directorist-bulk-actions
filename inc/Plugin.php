@@ -16,6 +16,11 @@ defined('ABSPATH') || exit;
 final class Plugin
 {
     /**
+     * Admin page hook suffix where plugin assets should load.
+     */
+    private const ADMIN_PAGE_HOOK = 'at_biz_dir_page_directorist-bulk-actions';
+
+    /**
      * Plugin instance.
      *
      * @var Plugin|null
@@ -130,9 +135,19 @@ final class Plugin
     /**
      * Enqueue plugin admin scripts.
      */
-    public function enqueue_admin_scripts(): void
+    public function enqueue_admin_scripts(string $hook_suffix = ''): void
     {
-        $assets = include DIRECTORIST_BULK_ACTIONS_DIR . 'assets/build/app.asset.php';
+        if (self::ADMIN_PAGE_HOOK !== $hook_suffix) {
+            return;
+        }
+
+        $asset_file = DIRECTORIST_BULK_ACTIONS_DIR . 'assets/build/app.asset.php';
+
+        if (!file_exists($asset_file)) {
+            return;
+        }
+
+        $assets = include $asset_file;
 
         wp_enqueue_script(
             'dba-admin-script',
@@ -158,8 +173,12 @@ final class Plugin
     /**
      * Enqueue plugin admin styles.
      */
-    public function enqueue_admin_styles(): void
+    public function enqueue_admin_styles(string $hook_suffix = ''): void
     {
+        if (self::ADMIN_PAGE_HOOK !== $hook_suffix) {
+            return;
+        }
+
         $css_file = 'assets/build/style-app.css';
         $css_path = DIRECTORIST_BULK_ACTIONS_DIR . $css_file;
         $css_ver  = file_exists($css_path) ? filemtime($css_path) : $this->version;

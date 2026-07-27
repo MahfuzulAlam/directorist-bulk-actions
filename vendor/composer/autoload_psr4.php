@@ -6,5 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Directorist\\\\BulkActions\\\\' => array($baseDir . '/inc'),
+    'Directorist\\BulkActions\\' => array($baseDir . '/inc'),
 );

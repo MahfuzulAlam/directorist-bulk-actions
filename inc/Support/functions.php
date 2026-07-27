@@ -50,10 +50,15 @@ function dba_upload_image_from_url($image_url, $post_id = 0)
     }
 
     $allowed_hosts = ['googleusercontent.com', 'drive.google.com'];
-    $parsed_host   = parse_url($image_url, PHP_URL_HOST);
+    $parsed_host   = (string) parse_url($image_url, PHP_URL_HOST);
 
-    if (in_array($parsed_host, $allowed_hosts, true)) {
-        $legacy = true;
+    foreach ($allowed_hosts as $allowed_host) {
+        $suffix = '.' . $allowed_host;
+
+        if ($parsed_host === $allowed_host || substr($parsed_host, -strlen($suffix)) === $suffix) {
+            $legacy = true;
+            break;
+        }
     }
 
     if (!$legacy) {
