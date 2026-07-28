@@ -793,6 +793,40 @@ We welcome contributions! Here's how you can help:
 
 ---
 
+## 📝 Changelog
+
+### 2.2.1 — 2026-07-28
+
+**Changed**
+- The Directory Type field (Update Listings tab) and Taxonomy field (Import Taxonomies tab) now use searchable react-select dropdowns via a new reusable `SingleSelect` field component, replacing the native `<select>` elements and matching the rest of the design system.
+
+### 2.2.0 — 2026-07-28
+
+**Changed**
+- Complete admin UI redesign: modern sidebar navigation with icons and hints, card-based content area, refreshed design tokens (neutral slate base + WP admin accent color, larger radii, softer shadows), redesigned buttons, form controls, file-upload dropzones, animated progress bars, dark log console, and a danger-styled delete flow. Fully responsive with reduced-motion support.
+
+**Performance**
+- Code-split the admin app with `React.lazy`: the initial bundle dropped from ~209 KB to ~8 KB. Each tool's code — including heavy vendors (SweetAlert2, react-select, PapaParse, FileSaver) — now loads on demand when its tab is opened, with a skeleton loading state.
+
+**Added**
+- Plugin version exposed to the UI (`dba_data.version`) and shown as a badge in the page header.
+
+### 2.1.2 — 2026-07-28
+
+**Fixed**
+- Composer PSR-4 autoloading: the namespace prefix in `composer.json` and the generated vendor maps was over-escaped, so plugin classes never resolved through the autoloader (only the manual include fallback kept the plugin working).
+- Admin assets (JS, CSS, and the localized bootstrap data with its full listing-count query) loaded on every wp-admin page; they are now scoped to the Bulk Actions screen only.
+- Fatal error when `assets/build/app.asset.php` is missing — the enqueue now bails gracefully.
+- `/update/listings` and `/import/taxonomies` now return HTTP 400 for a missing or non-array `items` payload instead of raising a PHP error.
+- An invalid CSV `publish_date` no longer resets a listing's publish date to the current time — the existing date is preserved.
+- Taxonomy import parent resolution returns `0` instead of an empty string when no parent exists.
+- Google-hosted image URLs on subdomains (e.g. `lh3.googleusercontent.com`) now correctly use the legacy download path.
+- Delete Listings: the category filter now loads **all** non-empty categories by paginating the Directorist REST API (previously capped at the API's default of 10 per page).
+- Delete Listings: the batch loop aborts with an error if a batch deletes nothing, instead of re-requesting the same posts forever.
+- Set Coordinates / Run Update: progress calculation no longer divides by zero on sites with no listings.
+
+---
+
 ## 📄 License
 
 This plugin is licensed under **GPL-2.0-or-later**.

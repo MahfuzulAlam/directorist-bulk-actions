@@ -30,7 +30,7 @@ final class Plugin
     /**
      * Plugin version string for assets.
      */
-    private string $version = '2.1.1';
+    private string $version = '2.2.1';
 
     /**
      * Bootstrapped service classes.
@@ -166,6 +166,7 @@ final class Plugin
                 'statuses'          => $this->get_statuses(),
                 'allDirectoryTypes' => $this->get_directory_types('all'),
                 'restUrl'           => 'directorist_bulk_actions/v1',
+                'version'           => $this->version,
             ]
         );
     }

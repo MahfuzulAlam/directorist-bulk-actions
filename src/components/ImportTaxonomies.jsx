@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
 import apiFetch from '@wordpress/api-fetch';
+import SingleSelect from './fields/SingleSelect';
+
+const TAXONOMY_OPTIONS = [
+  { value: 'category', label: 'Categories' },
+  { value: 'location', label: 'Locations' },
+];
 
 const ImportTaxonomies = () => {
   const [loading, setLoading] = useState(false);
@@ -119,14 +125,13 @@ const ImportTaxonomies = () => {
         </p>
         { updateOnMatch && <p className="note">Terms will be updated if they match either the term ID or the term slug.</p>}
 
-        <select
-          value={taxonomy}
-          onChange={(e) => setTaxonomy(e.target.value)}
-          className="taxonomy-select"
-        >
-          <option value="category">Categories</option>
-          <option value="location">Locations</option>
-        </select>
+        <SingleSelect
+          label="Taxonomy"
+          options={TAXONOMY_OPTIONS}
+          value={TAXONOMY_OPTIONS.find((option) => option.value === taxonomy) || null}
+          onChange={(selected) => setTaxonomy(selected ? selected.value : 'category')}
+          placeholder="Select taxonomy..."
+        />
 
         <input type="file" accept=".csv" onChange={handleCSVChange} />
 

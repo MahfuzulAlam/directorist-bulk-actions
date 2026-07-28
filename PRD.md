@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Product** | Directorist – Bulk Actions (WordPress plugin, Directorist extension) |
-| **Version** | 2.1.1 |
+| **Version** | 2.2.0 |
 | **Author / Vendor** | wpXplore ([wpxplore.com](https://wpxplore.com)) |
 | **Plugin URI** | https://wpxplorer.com/tools/directorist-bulk-actions |
 | **License** | GPL-2.0-or-later |
@@ -153,9 +153,10 @@ A single admin screen (**Listings → Bulk Actions**) hosting six tools built as
 ### 3.7 Admin experience (cross-cutting)
 
 - Single submenu page **Bulk Actions** under the Directorist listings menu (`edit.php?post_type=at_biz_dir`), rendering a React app mounted on `#directorist-bulk-actions-admin`.
-- Tabbed UI (Update Listings / Export Taxonomies / Import Taxonomies / Delete Listings / Set Coordinates / Run Update) with a warning against switching tabs mid-operation.
-- Plugin JS/CSS load **only** on this admin page (hook-suffix scoped enqueue).
-- Bootstrap data localized to `window.dba_data`: total listing count, directory types (with all-status counts), post statuses (incl. `expired`), REST namespace.
+- Modern sidebar-navigation layout (2.2.0): icon + label + hint per tool, card-based content area, page header with version badge and total-listings stat, danger styling on the destructive tool. Neutral slate palette with the WP admin theme color as single accent; responsive (sidebar collapses to horizontal pills < 960px); honors `prefers-reduced-motion`.
+- Six tools: Update Listings / Export Taxonomies / Import Taxonomies / Delete Listings / Set Coordinates / Run Update, with a warning against switching tabs mid-operation.
+- **Performance:** plugin JS/CSS load only on this admin page (hook-suffix scoped enqueue), and the app is code-split with `React.lazy` — the initial bundle is the ~8 KB shell; each tool's chunk (and heavy vendors: SweetAlert2, react-select, PapaParse, FileSaver) loads on demand with a skeleton loading state. React itself is externalized to WordPress core scripts.
+- Bootstrap data localized to `window.dba_data`: total listing count, directory types (with all-status counts), post statuses (incl. `expired`), REST namespace, plugin version.
 - The plugin only boots when the Directorist base plugin is active (single-site or network-activated).
 
 ---
@@ -232,9 +233,9 @@ All routes: `POST`, namespace `directorist_bulk_actions/v1`, permission `current
 
 ---
 
-## 7. Release notes (this revision)
+## 7. Release notes (2.1.2)
 
-Fixes applied in the 2.1.1 code review:
+Fixes applied in the 2.1.2 code review:
 
 1. **Composer PSR-4 autoloading repaired** — the namespace prefix in `composer.json` (and generated vendor maps) was over-escaped (`Directorist\\BulkActions\\` as literal), so the autoloader never matched the plugin's classes; the plugin survived only via manual includes.
 2. **Admin assets scoped to the plugin page** — scripts, styles, and the bootstrap listing-count query previously ran on every wp-admin page.
@@ -245,6 +246,7 @@ Fixes applied in the 2.1.1 code review:
 7. **Google-hosted image URLs on subdomains** (e.g. `lh3.googleusercontent.com`) now correctly route through the legacy downloader.
 8. **Delete loop stall guard** — the UI aborts with an error if a batch deletes nothing, instead of requesting the same failing posts forever.
 9. **Progress-bar division-by-zero guard** in Set Coordinates / Run Update on sites with no listings.
+10. **Delete Listings category filter loads all categories** — the Directorist REST categories endpoint is paginated (default 10, max 100 per page); the UI now fetches every page of non-empty categories.
 
 ---
 

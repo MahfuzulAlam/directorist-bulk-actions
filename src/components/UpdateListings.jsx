@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
 import apiFetch from '@wordpress/api-fetch';
+import SingleSelect from './fields/SingleSelect';
 
 const UpdateListings = () => {
     const [loading, setLoading] = useState(false);
     const [file, setFile] = useState(null);
-    const [directory, setDirectory] = useState(0);
+    const [directory, setDirectory] = useState('');
+
+    const directoryOptions = Object.entries(window.dba_data?.directoryTypes || {}).map(
+        ([key, label]) => ({ value: String(key), label })
+    );
     const [totalUpdated, setTotalUpdated] = useState(0);
     const [totalAdded, setTotalAdded] = useState(0);
     const [totalFailed, setTotalFailed] = useState(0);
@@ -97,19 +102,13 @@ const UpdateListings = () => {
                 <p>Select the directory type you want to upload the listings with CSV file</p>
                 <p className="note">Listings will be updated if they match either the listings ID only.</p>
 
-                <select
-                    value={directory}
-                    onChange={(e) => setDirectory(e.target.value)}
-                    className="directory-select"
-                >
-                    <option value="">Directory type</option>
-                    {window.dba_data.directoryTypes &&
-                        Object.entries(window.dba_data.directoryTypes).map(([key, label]) => (
-                            <option key={key} value={key}>
-                                {label}
-                            </option>
-                        ))}
-                </select>
+                <SingleSelect
+                    label="Directory Type"
+                    options={directoryOptions}
+                    value={directoryOptions.find((option) => option.value === String(directory)) || null}
+                    onChange={(selected) => setDirectory(selected ? selected.value : '')}
+                    placeholder="Select directory type..."
+                />
 
                 <input type="file" accept=".csv" onChange={handleCSVChange} />
 
