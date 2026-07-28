@@ -795,6 +795,11 @@ We welcome contributions! Here's how you can help:
 
 ## 📝 Changelog
 
+### 2.2.2 — 2026-07-28
+
+**Changed**
+- The "do not switch tabs" warning was moved out of the tab content into a global notice bar between the page header and the workspace (it applies to all tools, not one tab), redesigned as a compact pill with a warning icon.
+
 ### 2.2.1 — 2026-07-28
 
 **Changed**

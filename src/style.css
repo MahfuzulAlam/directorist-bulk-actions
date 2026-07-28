@@ -94,6 +94,30 @@
     color: var(--dba-text);
 }
 
+/* ========== Global notice ========== */
+
+.dba-global-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+    padding: 9px 14px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--dba-warning);
+    background: var(--dba-warning-soft);
+    border: 1px solid color-mix(in srgb, var(--dba-warning) 20%, #ffffff);
+    border-radius: 999px;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.dba-global-notice svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+}
+
 /* ========== Layout: sidebar nav + content card ========== */
 
 .dba-body {
@@ -240,7 +264,6 @@
 
 /* ========== Notices ========== */
 
-.tab-content p.warning,
 .tab-content p.note,
 .tab-content .error,
 .tab-content p.error {
@@ -250,12 +273,6 @@
     line-height: 1.55;
     margin: 0 0 18px;
     border: 1px solid;
-}
-
-.tab-content p.warning {
-    color: var(--dba-warning);
-    background: var(--dba-warning-soft);
-    border-color: color-mix(in srgb, var(--dba-warning) 22%, #ffffff);
 }
 
 .tab-content p.note {

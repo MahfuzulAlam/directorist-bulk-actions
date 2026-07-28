@@ -1,6 +1,6 @@
 # Production Build Manifest
 
-## Directorist – Bulk Actions v2.2.1
+## Directorist – Bulk Actions v2.2.2
 
 This document lists exactly what must (and must not) ship in a production release of the plugin — e.g. a distribution ZIP or a deploy to a live site.
 
