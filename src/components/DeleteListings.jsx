@@ -74,12 +74,39 @@ const DeleteListings = () => {
    * Load initial dropdown options on component mount
    */
   useEffect(() => {
+    /**
+     * Fetch every page of a Directorist terms collection.
+     * The REST API defaults to 10 items per page (max 100), so we keep
+     * requesting pages until one comes back short.
+     */
+    const fetchAllTerms = async (basePath, queryArgs = {}) => {
+      const perPage = 100;
+      let page = 1;
+      let allTerms = [];
+
+      while (true) {
+        const batch = await apiFetch({
+          path: addQueryArgs(basePath, { ...queryArgs, per_page: perPage, page })
+        });
+
+        if (!Array.isArray(batch) || batch.length === 0) break;
+
+        allTerms = allTerms.concat(batch);
+
+        if (batch.length < perPage) break;
+        page++;
+      }
+
+      return allTerms;
+    };
+
     const loadInitialData = async () => {
       try {
-        // Load categories
-        const categoriesResponse = await apiFetch({ 
-          path: '/directorist/v1/listings/categories?hide_empty=true' 
-        });
+        // Load categories (all pages, non-empty only)
+        const categoriesResponse = await fetchAllTerms(
+          '/directorist/v1/listings/categories',
+          { hide_empty: true }
+        );
         setDropdownOptions(prev => ({
           ...prev,
           categories: transformOptions(categoriesResponse)
